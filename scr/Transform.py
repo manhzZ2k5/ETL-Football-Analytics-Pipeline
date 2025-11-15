@@ -3,37 +3,34 @@ import numpy as np
 import os
 from pathlib import Path
 
-# Xác định BASE_DIR: ưu tiên environment variable, nếu không thì dùng relative path từ script
-# Script nằm trong scr/, nên BASE_DIR là parent directory
 if "ETL_FOOTBALL_BASE_DIR" in os.environ:
     BASE_DIR = os.environ["ETL_FOOTBALL_BASE_DIR"]
 else:
-    # Lấy thư mục chứa script (scr/), rồi lên 1 level để có BASE_DIR
     BASE_DIR = str(Path(__file__).parent.parent.absolute())
 
-# Thư mục chứa raw data
 DATA_DIR = os.path.join(BASE_DIR, "data_raw")
 DATA_PROCESSED_DIR = os.path.join(BASE_DIR, "data_processed")
 
-# Tạo thư mục nếu chưa tồn tại
 os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(DATA_PROCESSED_DIR, exist_ok=True)
 
 
-def create_dim_player():
+
+def save_table(df: pd.DataFrame, filename: str, table_type: str = "table") -> None:
+    output_path = os.path.join(DATA_PROCESSED_DIR, filename)
+    df.to_csv(output_path, index=False)
+    print(f"{table_type} created: {len(df)} records -> {filename}")
+
+
+def create_dim_player() -> pd.DataFrame:
     print("Creating dim_player:")
     
     df = pd.read_csv(
         os.path.join(DATA_DIR, "fbref_fact_player_season_stats.csv"),
         header=[0, 1, 2]
     )
-    
-    # Tìm cột trong MultiIndex: header=[0,1,2] tạo 3 levels (level0, level1, level2)
-    # Level 0: tên cột ('player', 'pos', 'nation', 'born')
-    # Level 1: Unnamed: X_level_1 (từ header row 2)
-    # Level 2: giá trị dữ liệu từ dòng đầu (thay đổi, không dùng để match)
-    # Ví dụ: 'player', 'Unnamed: 3_level_1', 'Ainsley Maitland-Niles'
-    # match level 0 và level 1 để tìm cột
+
+    # Chọn cột cần thiết bằng cách match 2 level đầu (level 3 là giá trị dữ liệu)
     player_col = [col for col in df.columns if col[0] == 'player' and col[1] == 'Unnamed: 3_level_1'][0]
     pos_col = [col for col in df.columns if col[0] == 'pos' and col[1] == 'Unnamed: 5_level_1'][0]
     nation_col = [col for col in df.columns if col[0] == 'nation' and col[1] == 'Unnamed: 4_level_1'][0]
@@ -41,30 +38,36 @@ def create_dim_player():
     
     df_subset = df[[player_col, pos_col, nation_col, born_col]].copy()
     
+    # đặt tên cột dễ dùng
     df_subset.columns = ['player', 'pos', 'nation', 'born']
     
+    # loại trùng theo tên player, giữ bản ghi đầu tiên
     df_subset = df_subset.drop_duplicates(subset='player', keep='first')
     
-    # Thiết lập lại index để player_id liên tiếp
+    # thiết lập lại index để player_id liên tiếp
     df_subset = df_subset.reset_index(drop=True)
     
-    # Tạo player_id tăng dần từ 1
+    # tạo player_id tăng dần từ 1
     df_subset['player_id'] = np.arange(len(df_subset)) + 1
     
     df_subset['born'] = df_subset['born'].astype('Int64')
+    
+    # nếu muốn player_id là cột đầu
     df_subset = df_subset[['player_id', 'player', 'pos', 'nation', 'born']]
-
-    output_path = os.path.join(DATA_PROCESSED_DIR, "dim_player.csv")
-    df_subset.to_csv(output_path, index=False)
-    print(f"dim_player created: {len(df_subset)} records")
+    
+    # lưu ra file
+    save_table(df_subset, "dim_player.csv", "dim_player")
     return df_subset
 
 
-def create_dim_team():
+def create_dim_team() -> pd.DataFrame:
     print("Creating dim_team:")
+    
+    # dữ liệu dim_team
     df = pd.read_csv(os.path.join(DATA_DIR, "dim_team.csv"))
-
-    # Loại bỏ dòng header trùng lặp 
+    # print(df.columns.tolist())
+    
+    # Loại bỏ dòng header trùng lặp (nếu có)
     header_row = list(df.columns)
     df = df[~df.apply(lambda row: list(row.values) == header_row, axis=1)].reset_index(drop=True)
     
@@ -128,7 +131,7 @@ def create_dim_team():
         return name.strip()
     
     df_subset["team_name"] = df_subset["team_name"].apply(clean_team_name)
-
+    
     name_map = {
         "Brighton & Hove Albion": "Brighton",
         "Manchester United": "Manchester utd",
@@ -141,6 +144,7 @@ def create_dim_team():
         "A Bournemouth": "Bournemouth",
         "Nottingham Forest": "Nott'ham forest"
     }
+    # Thay thế tên đội
     df_subset["team_name"] = df_subset["team_name"].replace(name_map)
     
     # Loại bỏ "Q" và chuyển sang integer
@@ -150,17 +154,18 @@ def create_dim_team():
     df_subset["stadium_id"] = df_subset["stadium_id"].astype(str).str.replace("Q", "", regex=False)
     df_subset["stadium_id"] = pd.to_numeric(df_subset["stadium_id"], errors='coerce').astype('Int64')
     
-    output_path = os.path.join(DATA_PROCESSED_DIR, "dim_team.csv")
-    df_subset.to_csv(output_path, index=False)
-    print(f"dim_team created: {len(df_subset)} records")
+    save_table(df_subset, "dim_team.csv", "dim_team")
     return df_subset
 
 
-def create_dim_stadium():
+def create_dim_stadium() -> pd.DataFrame:
     print("Creating dim_stadium:")
     
+    # dữ liệu Dim_stadium
     df = pd.read_csv(os.path.join(DATA_DIR, "dim_team.csv"))
+    # print(df.columns.tolist())
     
+    # Loại bỏ dòng header trùng lặp (nếu có)
     header_row = list(df.columns)
     df = df[~df.apply(lambda row: list(row.values) == header_row, axis=1)].reset_index(drop=True)
     
@@ -179,13 +184,31 @@ def create_dim_stadium():
     df_subset = df_subset.dropna(subset=['capacity'])
     df_subset['capacity'] = df_subset['capacity'].astype(int)
     
-    output_path = os.path.join(DATA_PROCESSED_DIR, "dim_stadium.csv")
-    df_subset.to_csv(output_path, index=False)
-    print(f"dim_stadium created: {len(df_subset)} records")
+    save_table(df_subset, "dim_stadium.csv", "dim_stadium")
     return df_subset
 
 
-def create_fact_team_match():
+def create_dim_match() -> pd.DataFrame:
+    print("Creating dim_match:")
+    
+    df_raw = pd.read_csv(os.path.join(DATA_DIR, "fbref_fact_team_match.csv"))
+    unique_matches = df_raw.drop_duplicates(subset=['game']).copy()
+    unique_matches['game_id'] = range(1, len(unique_matches) + 1)
+    
+    df_subset = unique_matches[['game_id', 'game', 'date', 'round', 'day']].copy()
+    df_subset['game'] = df_subset['game'].astype(str).str.strip()
+    df_subset['date'] = pd.to_datetime(df_subset['date'], errors='coerce')
+    df_subset['round'] = df_subset['round'].astype(str).str.strip()
+    df_subset['day'] = df_subset['day'].astype(str).str.strip()
+    df_subset['game_id'] = df_subset['game_id'].astype('Int64')
+    
+    save_table(df_subset, "dim_match.csv", "dim_match")
+    return df_subset
+
+
+
+def create_fact_team_match() -> pd.DataFrame:
+    """Create fact table for team match statistics (theo notebook cell với fact_team_match)."""
     print("Creating fact_team_match_clean:")
     
     df = pd.read_csv(os.path.join(DATA_DIR, "fbref_fact_team_match.csv"))
@@ -193,7 +216,7 @@ def create_fact_team_match():
     df_match = pd.read_csv(os.path.join(DATA_PROCESSED_DIR, 'dim_match.csv'))
     df_player = pd.read_csv(os.path.join(DATA_PROCESSED_DIR, 'dim_player.csv'))
     
-    # CHUẨN HÓA CHUỖI
+    # CHUẨN HÓA CHUỖI (rất quan trọng)
     df['team'] = df['team'].astype(str).str.strip().str.lower()
     df_team['team_name'] = df_team['team_name'].astype(str).str.strip().str.lower()
     
@@ -212,6 +235,8 @@ def create_fact_team_match():
         how='left'
     )
     
+    df.rename(columns={'team_id': 'team_id'}, inplace=True)
+    
     # MAP OPPONENT → opponent_id
     df = df.merge(
         df_team[['team_id', 'team_name']].rename(columns={'team_name': 'opponent'}),
@@ -219,6 +244,7 @@ def create_fact_team_match():
         how='left',
         suffixes=('', '_opp')
     )
+    
     df.rename(columns={'team_id_opp': 'opponent_id'}, inplace=True)
     
     # MAP GAME → game_id
@@ -235,9 +261,11 @@ def create_fact_team_match():
         right_on='player',
         how='left'
     )
+    
     df.rename(columns={'player_id': 'captain_id'}, inplace=True)
     df.drop(columns=['player'], inplace=True)
     
+    # Loại bỏ "Q" và chuyển team_id và opponent_id sang integer
     if 'team_id' in df.columns:
         df['team_id'] = df['team_id'].astype(str).str.replace('Q', '', regex=False)
         df['team_id'] = pd.to_numeric(df['team_id'], errors='coerce').astype('Int64')
@@ -267,24 +295,25 @@ def create_fact_team_match():
         'Opp Formation',
     ]]
     
-    output_path = os.path.join(DATA_PROCESSED_DIR, 'fact_team_match_clean.csv')
-    df_subset.to_csv(output_path, index=False)
-    print(f"fact_team_match_clean created: {len(df_subset)} records")
+    save_table(df_subset, 'fact_team_match_clean.csv', "fact_team_match_clean")
     return df_subset
 
 
-def create_fact_player_match():
+def create_fact_player_match() -> pd.DataFrame:
     print("Creating fact_player_match_clean:")
     
+    # dữ liệu fact_playermatchstats
     df = pd.read_csv(
         os.path.join(DATA_DIR, "fbref_fact_player_match_stats.csv"),
         header=[0, 1, 2]
     )
+    # print(df.columns.tolist())
     
     df_match = pd.read_csv(os.path.join(DATA_PROCESSED_DIR, 'dim_match.csv'))
     df_player = pd.read_csv(os.path.join(DATA_PROCESSED_DIR, 'dim_player.csv'))
     df_team = pd.read_csv(os.path.join(DATA_PROCESSED_DIR, 'dim_team.csv'))
     
+    # Xác định tên cột dựa trên cấu trúc thực tế (match 2 level đầu)
     season_col_name = [col for col in df.columns if col[0] == 'season' and col[1] == 'Unnamed: 1_level_1'][0]
     game_col_name = [col for col in df.columns if col[0] == 'game' and col[1] == 'Unnamed: 2_level_1'][0]
     team_col_name = [col for col in df.columns if col[0] == 'team' and col[1] == 'Unnamed: 3_level_1'][0]
@@ -295,6 +324,7 @@ def create_fact_player_match():
         df = df.iloc[1:].reset_index(drop=True)
         print(f"Đã loại bỏ dòng header trùng lặp. Số dòng còn lại: {len(df)}")
     
+    # Tìm các cột khác bằng cách match 2 level đầu
     min_col = [col for col in df.columns if col[0] == 'min' and col[1] == 'Unnamed: 9_level_1'][0]
     gls_col = [col for col in df.columns if col[0] == 'Performance' and col[1] == 'Gls'][0]
     ast_col = [col for col in df.columns if col[0] == 'Performance' and col[1] == 'Ast'][0]
@@ -308,6 +338,9 @@ def create_fact_player_match():
     tkl_col = [col for col in df.columns if col[0] == 'Performance' and col[1] == 'Tkl'][0]
     int_col = [col for col in df.columns if col[0] == 'Performance' and col[1] == 'Int'][0]
     blocks_col = [col for col in df.columns if col[0] == 'Performance' and col[1] == 'Blocks'][0]
+    # Expected stats: xG và xAG (expected assists, còn gọi là xA)
+    xg_col = [col for col in df.columns if col[0] == 'Expected' and col[1] == 'xG'][0]
+    xag_col = [col for col in df.columns if col[0] == 'Expected' and col[1] == 'xAG'][0]
     sca_col = [col for col in df.columns if col[0] == 'SCA' and col[1] == 'SCA'][0]
     gca_col = [col for col in df.columns if col[0] == 'SCA' and col[1] == 'GCA'][0]
     cmp_col = [col for col in df.columns if col[0] == 'Passes' and col[1] == 'Cmp'][0]
@@ -319,67 +352,23 @@ def create_fact_player_match():
     to_att_col = [col for col in df.columns if col[0] == 'Take-Ons' and col[1] == 'Att'][0]
     to_succ_col = [col for col in df.columns if col[0] == 'Take-Ons' and col[1] == 'Succ'][0]
     
-    df_subset = df[[
-        season_col_name,  # season
-        game_col_name,  # game
-        team_col_name,  # team
-        player_col_name,  # player
-        min_col,
-        gls_col,
-        ast_col,
-        pk_col,
-        pkatt_col,
-        sh_col,
-        sot_col,
-        crdy_col,
-        crdr_col,
-        touches_col,
-        tkl_col,
-        int_col,
-        blocks_col,
-        sca_col,
-        gca_col,
-        cmp_col,
-        att_col,
-        cmppct_col,
-        prgp_col,
-        carries_col,
-        prgc_col,
-        to_att_col,
-        to_succ_col
-    ]].copy()
+    df_subset = df[[season_col_name, game_col_name, team_col_name, player_col_name,
+                    min_col, gls_col, xg_col, xag_col, ast_col, pk_col, pkatt_col, sh_col, sot_col,
+                    crdy_col, crdr_col, touches_col, tkl_col, int_col, blocks_col,
+                    sca_col, gca_col, cmp_col, att_col, cmppct_col, prgp_col,
+                    carries_col, prgc_col, to_att_col, to_succ_col]]
     
     df_subset.columns = [
-        'season',
-        'game',
-        'team',
-        'player',
-        'min_played',
-        'goals',
-        'assists',
-        'penalty_made',
-        'penalty_attempted',
-        'shots',
-        'shots_on_target',
-        'yellow_cards',
-        'red_cards',
-        'touches',
-        'tackles',
-        'interceptions',
-        'blocks',
-        'shot_creating_actions',
-        'goal_creating_actions',
-        'passes_completed',
-        'passes_attempted',
-        'pass_completion_percent',
-        'progressive_passes',
-        'carries',
-        'progressive_carries',
-        'take_ons_attempted',
-        'take_ons_successful'
+        'season', 'game', 'team', 'player', 'min_played', 'goals', 'xG', 'xA',
+        'assists', 'penalty_made', 'penalty_attempted', 'shots', 'shots_on_target',
+        'yellow_cards', 'red_cards', 'touches', 'tackles', 'interceptions',
+        'blocks', 'shot_creating_actions', 'goal_creating_actions',
+        'passes_completed', 'passes_attempted', 'pass_completion_percent',
+        'progressive_passes', 'carries', 'progressive_carries',
+        'take_ons_attempted', 'take_ons_successful'
     ]
     
-    # Tên khác form
+    # tên khác form
     name_map = {
         "Brighton & Hove Albion": "Brighton",
         "Manchester United": "Manchester utd",
@@ -391,6 +380,7 @@ def create_fact_player_match():
         "Wolverhampton Wanderers": "Wolves",
         "Nottingham Forest": "Nott'ham forest"
     }
+    # Thay thế tên đội
     df_subset["team"] = df_subset["team"].replace(name_map)
     
     # Chuẩn hóa chuỗi cho game
@@ -436,49 +426,32 @@ def create_fact_player_match():
         how='left'
     )
     
+    df_subset = df_subset[['season', 'game_id', 'team_id', 'player_id',
+                           'min_played', 'goals', 'xG', 'xA', 'assists', 'penalty_made',
+                           'penalty_attempted', 'shots', 'shots_on_target',
+                           'yellow_cards', 'red_cards', 'touches', 'tackles',
+                           'interceptions', 'blocks', 'shot_creating_actions',
+                           'goal_creating_actions', 'passes_completed',
+                           'passes_attempted', 'pass_completion_percent',
+                           'progressive_passes', 'carries', 'progressive_carries',
+                           'take_ons_attempted', 'take_ons_successful']]
     
-    df_subset = df_subset[[
-        'season',
-        'game_id',
-        'team_id',
-        'player_id',
-        'min_played',
-        'goals',
-        'assists',
-        'penalty_made',
-        'penalty_attempted',
-        'shots',
-        'shots_on_target',
-        'yellow_cards',
-        'red_cards',
-        'touches',
-        'tackles',
-        'interceptions',
-        'blocks',
-        'shot_creating_actions',
-        'goal_creating_actions',
-        'passes_completed',
-        'passes_attempted',
-        'pass_completion_percent',
-        'progressive_passes',
-        'carries',
-        'progressive_carries',
-        'take_ons_attempted',
-        'take_ons_successful'
-    ]]
-    
-    output_path = os.path.join(DATA_PROCESSED_DIR, 'fact_player_match_clean.csv')
-    df_subset.to_csv(output_path, index=False)
-    print(f"fact_player_match_clean created: {len(df_subset)} records")
+    save_table(df_subset, 'fact_player_match_clean.csv', "fact_player_match_clean")
     return df_subset
 
 
-def create_fact_team_point():
+def create_fact_team_point() -> pd.DataFrame:
     print("Creating fact_team_point:")
     
-    df = pd.read_csv(os.path.join(DATA_DIR, 'premier_league_last_5_seasons.csv'))
+    # Đọc từ team_point.csv (từ Selenium scraping) hoặc premier_league_last_5_seasons.csv
+    if os.path.exists(os.path.join(DATA_DIR, 'premier_league_last_5_seasons.csv')):
+        df = pd.read_csv(os.path.join(DATA_DIR, 'premier_league_last_5_seasons.csv'))
+    else:
+        df = pd.read_csv(os.path.join(DATA_DIR, 'team_point.csv'))
+    
     df_team = pd.read_csv(os.path.join(DATA_PROCESSED_DIR, 'dim_team.csv'))
     
+    # Convert season (theo notebook)
     def convert_season(season):
         # season dạng "2024/2025"
         parts = season.split("/")
@@ -489,7 +462,7 @@ def create_fact_team_point():
     df["Mùa giải"] = df["Mùa giải"].apply(convert_season)
     df = df.rename(columns={"Mùa giải": "season_id"})
     
-    # Tên khác form
+    # tên khác form
     name_map = {
         "Ipswich": "Ipswich Town",
         "Luton": "Luton Town",
@@ -499,6 +472,7 @@ def create_fact_team_point():
         "Norwich": "Norwich City",
         "Nottingham": "Nott'ham forest"
     }
+    # Thay thế tên đội
     df["Team"] = df["Team"].replace(name_map)
     
     # Chuẩn hóa cho team
@@ -517,9 +491,7 @@ def create_fact_team_point():
     if 'team_name' in df.columns:
         df.drop(columns=['team_name'], inplace=True)
     
-    print("Team không map:", df[df['team_id'].isna()]['Team'].unique())
-    
-    # Đổi kiểu dữ liệu cột rank
+    # đổi kiểu dữ liệu cột rank
     df["Rank"] = df["Rank"].astype(int)
     
     # Tách GF và GA từ cột "GF:GA"
@@ -532,42 +504,25 @@ def create_fact_team_point():
     # Xóa cột cũ
     df.drop(columns=["GF:GA"], inplace=True)
     
-    df_subset = df[[
-        "season_id",
-        "Match_Category",
-        "Rank",
-        "team_id",
-        "MP",
-        "W",
-        "D",
-        "L",
-        "GF",
-        "GA",
-        "GD",
-        "Pts",
-        "Recent_Form"
-    ]]
+    df_subset = df[["season_id", "Match_Category", "Rank", "team_id",
+                    "MP", "W", "D", "L", "GF", "GA", "GD", "Pts", "Recent_Form"]]
     
-    output_path = os.path.join(DATA_PROCESSED_DIR, 'fact_team_point.csv')
-    df_subset.to_csv(output_path, index=False)
-    print(f"fact_team_point created: {len(df_subset)} records")
+    save_table(df_subset, 'fact_team_point.csv', "fact_team_point")
     return df_subset
 
 
 if __name__ == "__main__":
-
     print("ETL Football - Transform Process")
- 
-    # Create dimension tables 
+    
+    # Create dimension tables (must run before fact tables)
     create_dim_player()
     create_dim_team()
     create_dim_stadium()
+    create_dim_match()
     
-    # Create fact tables (dua vao bang dimdim)
+    # Create fact tables (depend on dimension tables)
     create_fact_team_match()
     create_fact_player_match()
     create_fact_team_point()
     
-
     print("Transform process completed!")
-

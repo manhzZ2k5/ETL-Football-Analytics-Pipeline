@@ -28,92 +28,86 @@ DATA_RAW_DIR = os.path.join(BASE_DIR, "data_raw")
 os.makedirs(DATA_RAW_DIR, exist_ok=True)
 
 def scrape_team_points():
-    """Scrape team standings/points from flashscore.com"""
+    """Scrape team standings/points from flashscore.com và lưu vào team_point.csv"""
     print("Fetching team points/standings from flashscore.com...")
-    
+
     # Cấu hình Chrome
     chrome_options = Options()
-    chrome_options.add_argument("--headless=new")  # chạy ẩn
+    chrome_options.add_argument("--headless=new")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     
-    # Tự động tải ChromeDriver phù hợp với bản Chrome hiện có
+    # Tự động tải ChromeDriver
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=chrome_options)
     
     try:
-        # Mở trang web
-        url = "https://www.flashscore.com/football/england/premier-league/standings/#/OEEq9Yvp/standings/overall/"
-        driver.get(url)
-        sleep(random.randint(5, 10))
+        # Danh sách 5 mùa gần nhất
+        seasons = ["2024-2025", "2023-2024", "2022-2023", "2021-2022", "2020-2021"]
         
-        # GET header
-        headers = driver.find_elements(By.CSS_SELECTOR, "div.ui-table__headerCell")
-        titles = [h.get_attribute("title").strip() for h in headers if h.get_attribute("title")]
-        print(titles)
+        # Tạo list để lưu kết quả
+        all_data = []
         
-        # GET DATA
-        data = {}
+        # Duyệt qua từng mùa
+        for season in seasons:
+            print(f"Processing season: {season}")
+            base_url = f"https://www.flashscore.com/football/england/premier-league-{season}/#/lAkHuyP3/standings/"
+            
+            # Duyệt qua 3 loại bảng (overall, home, away)
+            categories = ["overall", "home", "away"]
+            
+            for cat in categories:
+                url = f"{base_url}{cat}/"
+                driver.get(url)
+                sleep(2.5)
+                
+                # Lấy mùa giải hiển thị trên trang
+                try:
+                    season_label = driver.find_element(By.CSS_SELECTOR, "div.heading__info").text.strip()
+                except:
+                    season_label = season
+                
+                # Lấy dữ liệu
+                ranks = [r.text.strip() for r in driver.find_elements(By.CSS_SELECTOR, "div.tableCellRank")]
+                teams = [t.text.strip() for t in driver.find_elements(By.CSS_SELECTOR, "a.tableCellParticipant__name")]
+                values = [v.text.strip() for v in driver.find_elements(By.CSS_SELECTOR, "span.table__cell.table__cell--value")]
+                
+                # Lấy form gần đây
+                forms_all = driver.find_elements(By.CSS_SELECTOR, "div.table__cell.table__cell--form")
+                recent_forms = []
+                for form_cell in forms_all:
+                    results = [s.text.strip() for s in form_cell.find_elements(By.CSS_SELECTOR, "span.wcl-scores-simple-text-01_8lVyp")]
+                    recent_forms.append("".join(results))
+                
+                # Chia giá trị theo hàng (mỗi hàng có 7 giá trị: MP, W, D, L, GF:GA, GD, Pts)
+                rows = [values[i:i + 7] for i in range(0, len(values), 7)]
+                
+                # Gộp dữ liệu
+                for i, row in enumerate(rows):
+                    all_data.append({
+                        "Mùa giải": season_label,
+                        "Match_Category": cat,
+                        "Rank": ranks[i] if i < len(ranks) else "",
+                        "Team": teams[i] if i < len(teams) else "",
+                        "MP": row[0] if len(row) > 0 else "",
+                        "W": row[1] if len(row) > 1 else "",
+                        "D": row[2] if len(row) > 2 else "",
+                        "L": row[3] if len(row) > 3 else "",
+                        "GF:GA": row[4] if len(row) > 4 else "",
+                        "GD": row[5] if len(row) > 5 else "",
+                        "Pts": row[6] if len(row) > 6 else "",
+                        "Recent_Form": recent_forms[i] if i < len(recent_forms) else ""
+                    })
         
-        # Chờ phần tử rank xuất hiện
-        WebDriverWait(driver, 15).until(
-            EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div.table__cell--rank"))
-        )
+        # Chuyển đổi sang DataFrame và lưu vào CSV
+        columns = ["Mùa giải", "Match_Category", "Rank", "Team", "MP", "W", "D", "L", "GF:GA", "GD", "Pts", "Recent_Form"]
+        team_points_df = pd.DataFrame(all_data, columns=columns)
         
-        # Lấy dữ liệu
-        ranks = driver.find_elements(By.CSS_SELECTOR, "div.table__cell--rank")
-        data['Rank'] = [rank.text.strip() for rank in ranks if rank.text.strip()]
-        print(data['Rank'])
-        
-        teams = driver.find_elements(By.CSS_SELECTOR, "a.tableCellParticipant__name")
-        data['Team'] = [t.text.strip() for t in teams if t.text.strip()]
-        print(data["Team"])
-        
-        # Matches Played (MP)
-        data['MP'] = [e.text.strip() for e in driver.find_elements(By.CSS_SELECTOR, "span.table__cell--value:nth-of-type(1)")]
-        
-        # Wins
-        data['WINS'] = [e.text.strip() for e in driver.find_elements(By.CSS_SELECTOR, "span.table__cell--value:nth-of-type(2)")]
-        
-        # Draws
-        data['DRAWS'] = [e.text.strip() for e in driver.find_elements(By.CSS_SELECTOR, "span.table__cell--value:nth-of-type(3)")]
-        
-        # Losses
-        data['LOSSES'] = [e.text.strip() for e in driver.find_elements(By.CSS_SELECTOR, "span.table__cell--value:nth-of-type(4)")]
-        
-        # Goals For : Goals Against (VD: "86:41")
-        data['GOALS'] = [e.text.strip() for e in driver.find_elements(By.CSS_SELECTOR, "span.table__cell--score")]
-        
-        # Goal Difference
-        data['GD'] = [e.text.strip() for e in driver.find_elements(By.CSS_SELECTOR, "span.table__cell--goalsForAgainstDiff")]
-        
-        # Points
-        data['POINTS'] = [e.text.strip() for e in driver.find_elements(By.CSS_SELECTOR, "span.table__cell--points")]
-        
-        data['Mùa giải'] = driver.find_element(By.CSS_SELECTOR, "div.heading__info").text.strip()
-        
-        # Lấy tất cả thẻ <a> chứa link standings
-        categories = driver.find_elements(By.CSS_SELECTOR, 'a[href*="standings/"]')
-        # Trích xuất phần cuối của href (overall, home, away)
-        data['match_category'] = [cat.get_attribute('href').split('/')[-2] for cat in categories]
-        print(data['match_category'])
-        
-        # Chuyển đổi sang DataFrame
-        # Tìm độ dài tối đa để đảm bảo tất cả cột có cùng số hàng
-        max_len = max(len(v) if isinstance(v, list) else 1 for v in data.values())
-        
-        # Chuẩn hóa dữ liệu: mở rộng giá trị scalar thành list
-        for key in data:
-            if not isinstance(data[key], list):
-                data[key] = [data[key]] * max_len
-        
-        team_points_df = pd.DataFrame(data)
-        
-        # Lưu vào CSV
         out_path = Path(DATA_RAW_DIR) / "team_point.csv"
         out_path.parent.mkdir(parents=True, exist_ok=True)
-        team_points_df.to_csv(out_path, index=False, encoding="utf-8")
+        team_points_df.to_csv(out_path, index=False, encoding="utf-8-sig")
         print(f"Saved: {out_path}")
+        print(f"Total records: {len(team_points_df)}")
         
     except Exception as e:
         print(f"Error scraping team points: {e}")
