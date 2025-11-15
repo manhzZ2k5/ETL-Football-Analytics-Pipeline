@@ -443,24 +443,28 @@ def create_fact_player_match() -> pd.DataFrame:
 def create_fact_team_point() -> pd.DataFrame:
     print("Creating fact_team_point:")
     
-    # Đọc từ team_point.csv (từ Selenium scraping) hoặc premier_league_last_5_seasons.csv
-    if os.path.exists(os.path.join(DATA_DIR, 'premier_league_last_5_seasons.csv')):
-        df = pd.read_csv(os.path.join(DATA_DIR, 'premier_league_last_5_seasons.csv'))
-    else:
+    if os.path.exists(os.path.join(DATA_DIR, 'team_point.csv')):
         df = pd.read_csv(os.path.join(DATA_DIR, 'team_point.csv'))
     
     df_team = pd.read_csv(os.path.join(DATA_PROCESSED_DIR, 'dim_team.csv'))
     
-    # Convert season (theo notebook)
     def convert_season(season):
         # season dạng "2024/2025"
-        parts = season.split("/")
-        y1 = parts[0][-2:]   # lấy 2 số cuối của năm đầu
-        y2 = parts[1][-2:]   # lấy 2 số cuối của năm sau
-        return y1 + y2       # ghép lại thành 2425
+        season_str = str(season)
+        if "/" in season_str:
+            parts = season_str.split("/")
+            if len(parts) == 2:
+                y1 = parts[0][-2:]   # lấy 2 số cuối của năm đầu
+                y2 = parts[1][-2:]   # lấy 2 số cuối của năm sau
+                return int(y1 + y2)  # ghép lại thành 2425 (integer)
+        return season
     
-    df["Mùa giải"] = df["Mùa giải"].apply(convert_season)
-    df = df.rename(columns={"Mùa giải": "season_id"})
+    if "Mùa giải" in df.columns:
+        df["Mùa giải"] = df["Mùa giải"].apply(convert_season)
+        df = df.rename(columns={"Mùa giải": "season_id"})
+    elif "season_id" in df.columns:
+        # Nếu đã có season_id rồi, chỉ cần convert nếu chưa convert
+        df["season_id"] = df["season_id"].apply(convert_season)
     
     # tên khác form
     name_map = {

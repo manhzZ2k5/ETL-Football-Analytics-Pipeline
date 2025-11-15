@@ -14,46 +14,43 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-# Xác định BASE_DIR: ưu tiên environment variable, nếu không thì dùng relative path từ script
 if "ETL_FOOTBALL_BASE_DIR" in os.environ:
     BASE_DIR = os.environ["ETL_FOOTBALL_BASE_DIR"]
 else:
-    # Lấy thư mục chứa script (scr/), rồi lên 1 level để có BASE_DIR
     BASE_DIR = str(Path(__file__).parent.parent.absolute())
 
-# Thư mục lưu raw data
 DATA_RAW_DIR = os.path.join(BASE_DIR, "data_raw")
 
 # Tạo thư mục nếu chưa tồn tại
 os.makedirs(DATA_RAW_DIR, exist_ok=True)
 
 def scrape_team_points():
-    """Scrape team standings/points from flashscore.com và lưu vào team_point.csv"""
-    print("Fetching team points/standings from flashscore.com...")
-
-    # Cấu hình Chrome
+    print("from flashscore.com...")
+ 
     chrome_options = Options()
     chrome_options.add_argument("--headless=new")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--remote-debugging-port=9222")
     
-    # Tự động tải ChromeDriver
+    # Tự động phát hiện Chrome binary path trong Docker
+    # Trong Docker, Chrome thường được cài ở /usr/bin/google-chrome
+    if os.path.exists("/usr/bin/google-chrome"):
+        chrome_options.binary_location = "/usr/bin/google-chrome"
+    elif os.path.exists("/usr/bin/google-chrome-stable"):
+        chrome_options.binary_location = "/usr/bin/google-chrome-stable"
+
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=chrome_options)
     
     try:
-        # Danh sách 5 mùa gần nhất
         seasons = ["2024-2025", "2023-2024", "2022-2023", "2021-2022", "2020-2021"]
-        
-        # Tạo list để lưu kết quả
         all_data = []
-        
-        # Duyệt qua từng mùa
         for season in seasons:
             print(f"Processing season: {season}")
             base_url = f"https://www.flashscore.com/football/england/premier-league-{season}/#/lAkHuyP3/standings/"
             
-            # Duyệt qua 3 loại bảng (overall, home, away)
             categories = ["overall", "home", "away"]
             
             for cat in categories:
@@ -67,12 +64,10 @@ def scrape_team_points():
                 except:
                     season_label = season
                 
-                # Lấy dữ liệu
                 ranks = [r.text.strip() for r in driver.find_elements(By.CSS_SELECTOR, "div.tableCellRank")]
                 teams = [t.text.strip() for t in driver.find_elements(By.CSS_SELECTOR, "a.tableCellParticipant__name")]
                 values = [v.text.strip() for v in driver.find_elements(By.CSS_SELECTOR, "span.table__cell.table__cell--value")]
                 
-                # Lấy form gần đây
                 forms_all = driver.find_elements(By.CSS_SELECTOR, "div.table__cell.table__cell--form")
                 recent_forms = []
                 for form_cell in forms_all:
@@ -82,7 +77,6 @@ def scrape_team_points():
                 # Chia giá trị theo hàng (mỗi hàng có 7 giá trị: MP, W, D, L, GF:GA, GD, Pts)
                 rows = [values[i:i + 7] for i in range(0, len(values), 7)]
                 
-                # Gộp dữ liệu
                 for i, row in enumerate(rows):
                     all_data.append({
                         "Mùa giải": season_label,
@@ -99,7 +93,6 @@ def scrape_team_points():
                         "Recent_Form": recent_forms[i] if i < len(recent_forms) else ""
                     })
         
-        # Chuyển đổi sang DataFrame và lưu vào CSV
         columns = ["Mùa giải", "Match_Category", "Rank", "Team", "MP", "W", "D", "L", "GF:GA", "GD", "Pts", "Recent_Form"]
         team_points_df = pd.DataFrame(all_data, columns=columns)
         
@@ -110,7 +103,7 @@ def scrape_team_points():
         print(f"Total records: {len(team_points_df)}")
         
     except Exception as e:
-        print(f"Error scraping team points: {e}")
+        print(f"Error scraping: {e}")
         raise
     finally:
         driver.quit()
