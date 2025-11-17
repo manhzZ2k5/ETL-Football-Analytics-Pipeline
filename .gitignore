@@ -159,15 +159,11 @@ Dockerfile
 init-db.sql
 setup-local-postgres.sql
 
-# Ignore all .md files except README.md
+# Ignore all .md files
 *.md
-!README.md
+
+# Ignore all .html files
+*.html
 
 # Ignore specific analysis/documentation files
 quick_quality_check.py
-fact_team_point_analysis.md
-DBMS_PROJECT_REQUIREMENTS.md
-DBMS_CORE_ANALYSIS.md
-database_coverage_analysis.md
-DATABASE_ARCHITECTURE.md
-DATA_QUALITY_ASSESSMENT.md
