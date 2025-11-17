@@ -12,12 +12,12 @@ team_id,team_name,founded_year,stadium_id,short_name
 19481,Leicester City,1884,620031,LEI
 1130849,Liverpool,1892,45671,LIV
 50602,Manchester City,1894,48159,MCI
-18656,Manchester Utd,1878,83457,MUN
-18716,Newcastle Utd,1892,191774,NEW
-19490,Nott'Ham Forest,1865,593446,NOT
+18656,Manchester utd,1878,83457,MUN
+18716,Newcastle utd,1892,191774,NEW
+19490,Nott'ham forest,1865,593446,NOT
 18732,Southampton,1885,567339,SOU
 18741,Tottenham,1882,55074091,TOT
-18747,West Ham,1895,172190,WHU
+18747,West ham,1895,172190,WHU
 19500,Wolves,1877,380823,WOL
 19446,Blackburn Rovers,1875,245085,BLA
 19456,Bristol City,1897,726370,BRC
@@ -36,10 +36,10 @@ team_id,team_name,founded_year,stadium_id,short_name
 19604,Portsmouth,1898,619531,POR
 19612,Preston North End,1880,1141958,PNE
 18723,Queens Park Rangers,1882,31670,QPR
-19607,Sheffield Utd,1889,897533,SHU
+19607,Sheffield utd,1889,897533,SHU
 19498,Sheffield Wednesday,1867,642557,SHW
 18736,Stoke City,1863,500922,STK
-18739,Sunderland A.,1879,31969,SUN
 18659,Swansea City A.,1912,580480,SWA
 2714,Watford,1881,10626,WAT
-18744,West Brom,1878,31678,WBA
+18744,West brom,1878,31678,WBA
+18739,Sunderland,1879,31969,SUN

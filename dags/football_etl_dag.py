@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.operators.empty import EmptyOperator
-from airflow.utils.trigger_rule import TriggerRule
 import os
 import sys
 from pathlib import Path
@@ -60,7 +59,7 @@ def transform_task(**context):
     try:
         import Transform
         
-        print("[Creating Dimension Tables")
+        print("[INFO] Creating dimension tables...")
         Transform.create_dim_player()
         Transform.create_dim_team()
         Transform.create_dim_stadium()
@@ -154,7 +153,6 @@ extract = PythonOperator(
 transform = PythonOperator(
     task_id='transform_data',
     python_callable=transform_task,
-    trigger_rule=TriggerRule.ALL_DONE,  # Run even if ẽxtract fails
     dag=dag,
 )
 
@@ -165,4 +163,4 @@ load = PythonOperator(
 )
 
 
-start >> transform >> load 
+start >> extract >> transform >> load

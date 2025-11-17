@@ -5,6 +5,7 @@ import os
 import numpy as np
 from time import sleep
 import random
+import warnings
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
@@ -23,6 +24,48 @@ DATA_RAW_DIR = os.path.join(BASE_DIR, "data_raw")
 
 # Tạo thư mục nếu chưa tồn tại
 os.makedirs(DATA_RAW_DIR, exist_ok=True)
+
+
+def flatten_dataframe_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Chuẩn hoá column names thành single-level để tránh ghi file với multi-index headers.
+    """
+    df = df.copy()
+    if isinstance(df.columns, pd.MultiIndex):
+        flattened = []
+        for idx, col in enumerate(df.columns):
+            parts = []
+            for level in col:
+                if level is None:
+                    continue
+                level_str = str(level).strip()
+                if not level_str or level_str.startswith("Unnamed"):
+                    continue
+                parts.append(level_str)
+            if not parts:
+                parts = [f"column_{idx}"]
+            flattened.append("_".join(parts))
+        df.columns = flattened
+    else:
+        df.columns = [str(col).strip() for col in df.columns]
+    return df
+
+
+def read_existing_raw_file(file_path: str) -> pd.DataFrame:
+    """
+    Đọc dữ liệu raw và xử lý các trường hợp file có multi-level header.
+    Luôn trả về DataFrame với single-level columns.
+    """
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", pd.errors.DtypeWarning)
+        df = pd.read_csv(file_path, dtype=str, low_memory=False)
+    # Nếu header bị duplicated (multi-level) -> đọc lại với header=[0,1]
+    if df.columns.duplicated().any():
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", pd.errors.DtypeWarning)
+            df = pd.read_csv(file_path, header=[0, 1], dtype=str, low_memory=False)
+    return flatten_dataframe_columns(df)
+
 
 def scrape_team_points(seasons_to_scrape=None):
   
@@ -211,13 +254,15 @@ def merge_with_existing_raw_data(new_df, file_path, key_cols):
     Returns:
         DataFrame đã merge
     """
+    new_df = flatten_dataframe_columns(new_df)
+
     if not os.path.exists(file_path):
         print(f"  First time: No existing data to merge")
         return new_df
     
     try:
         # Đọc dữ liệu cũ
-        old_df = pd.read_csv(file_path)
+        old_df = read_existing_raw_file(file_path)
         if old_df.empty:
             print(f"  Existing file is empty, using new data only")
             return new_df

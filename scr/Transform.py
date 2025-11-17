@@ -22,6 +22,50 @@ def save_table(df: pd.DataFrame, filename: str, table_type: str = "table") -> No
     print(f"{table_type} created: {len(df)} records -> {filename}")
 
 
+def _get_column(df: pd.DataFrame, level0: str, level1: str | None = None, single_name: str | None = None):
+    """Lấy đúng tên cột dù file có MultiIndex hay single header."""
+    if isinstance(df.columns, pd.MultiIndex):
+        candidates = []
+        target_level0 = level0.lower()
+        target_level1 = level1.lower() if level1 else None
+
+        for col in df.columns:
+            part0 = str(col[0]).strip()
+            base, _, suffix = part0.partition('_')
+            base_key = base.lower()
+            suffix_key = suffix.lower() if suffix else None
+
+            if base_key != target_level0:
+                continue
+
+            if target_level1:
+                matches_level1 = []
+                if len(col) > 1:
+                    matches_level1.append(str(col[1]).strip().lower())
+                if suffix_key:
+                    matches_level1.append(suffix_key)
+
+                if any(val == target_level1 for val in matches_level1 if val):
+                    return col
+                # nếu không khớp level1, bỏ qua cột này
+                continue
+
+            return col
+
+        if not candidates and target_level1:
+            raise KeyError(f"Column '{level0}_{level1}' not found in MultiIndex header")
+        if not candidates:
+            raise KeyError(f"Column '{level0}' not found in MultiIndex header")
+        return candidates[0]
+
+    col_map = {str(c).strip().lower(): c for c in df.columns}
+    search_names = [single_name, level0]
+    for name in search_names:
+        if name and name.lower() in col_map:
+            return col_map[name.lower()]
+    raise KeyError(f"Column '{level0}' not found in header")
+
+
 def create_dim_player() -> pd.DataFrame:
 
     print("Creating dim_player:")
@@ -29,13 +73,13 @@ def create_dim_player() -> pd.DataFrame:
     # SOURCE 1: Player SEASON stats (primary source with birth year)
     df_season = pd.read_csv(
         os.path.join(DATA_DIR, "fbref_fact_player_season_stats.csv"),
-        header=[0, 1, 2]
+        header=0
     )
     
-    player_col = [col for col in df_season.columns if col[0] == 'player' and col[1] == 'Unnamed: 3_level_1'][0]
-    pos_col = [col for col in df_season.columns if col[0] == 'pos' and col[1] == 'Unnamed: 5_level_1'][0]
-    nation_col = [col for col in df_season.columns if col[0] == 'nation' and col[1] == 'Unnamed: 4_level_1'][0]
-    born_col = [col for col in df_season.columns if col[0] == 'born' and col[1] == 'Unnamed: 7_level_1'][0]
+    player_col = _get_column(df_season, 'player', 'Unnamed: 3_level_1', 'player')
+    pos_col = _get_column(df_season, 'pos', 'Unnamed: 5_level_1', 'pos')
+    nation_col = _get_column(df_season, 'nation', 'Unnamed: 4_level_1', 'nation')
+    born_col = _get_column(df_season, 'born', 'Unnamed: 7_level_1', 'born')
     
     df_season_subset = df_season[[player_col, pos_col, nation_col, born_col]].copy()
     df_season_subset.columns = ['player', 'pos', 'nation', 'born']
@@ -43,7 +87,7 @@ def create_dim_player() -> pd.DataFrame:
     # SOURCE 2: Player MATCH stats (to catch players missing in season stats)
     df_match = pd.read_csv(
         os.path.join(DATA_DIR, "fbref_fact_player_match_stats.csv"),
-        header=[0, 1, 2]
+        header=0
     )
     
     # Remove header row if exists
@@ -51,9 +95,9 @@ def create_dim_player() -> pd.DataFrame:
         df_match = df_match.iloc[1:].reset_index(drop=True)
     
     # Extract player info from match stats
-    player_col_match = [col for col in df_match.columns if col[0] == 'player' and col[1] == 'Unnamed: 4_level_1'][0]
-    pos_col_match = [col for col in df_match.columns if col[0] == 'pos' and col[1] == 'Unnamed: 7_level_1'][0]
-    nation_col_match = [col for col in df_match.columns if col[0] == 'nation' and col[1] == 'Unnamed: 6_level_1'][0]
+    player_col_match = _get_column(df_match, 'player', 'Unnamed: 4_level_1', 'player')
+    pos_col_match = _get_column(df_match, 'pos', 'Unnamed: 7_level_1', 'pos')
+    nation_col_match = _get_column(df_match, 'nation', 'Unnamed: 6_level_1', 'nation')
     
     df_match_subset = df_match[[player_col_match, pos_col_match, nation_col_match]].copy()
     df_match_subset.columns = ['player', 'pos', 'nation']
@@ -99,7 +143,33 @@ def create_dim_team() -> pd.DataFrame:
     header_row = list(df.columns)
     df = df[~df.apply(lambda row: list(row.values) == header_row, axis=1)].reset_index(drop=True)
     
-    df_subset = df[['club_id', 'club_label', 'founding_year', 'venue_id']].copy()
+    def pick_column(possible_names: list[str]) -> str:
+        columns_lower = {str(col).strip().lower(): col for col in df.columns}
+        for name in possible_names:
+            if name in df.columns:
+                return name
+            lowered = name.lower()
+            if lowered in columns_lower:
+                return columns_lower[lowered]
+        raise KeyError(f"Columns {possible_names} not found in dim_team source")
+
+    column_map = {
+        "team_id": ["club_id", "team_id"],
+        "team_name": ["club_label", "team_name"],
+        "founded_year": ["founding_year", "founded_year"],
+        "stadium_id": ["venue_id", "stadium_id"],
+    }
+
+    resolved_columns = {key: pick_column(candidates) for key, candidates in column_map.items()}
+
+    df_subset = df[
+        [
+            resolved_columns["team_id"],
+            resolved_columns["team_name"],
+            resolved_columns["founded_year"],
+            resolved_columns["stadium_id"],
+        ]
+    ].copy()
     df_subset.columns = ['team_id', 'team_name', 'founded_year', 'stadium_id']
     
     # Map short names
@@ -150,7 +220,16 @@ def create_dim_team() -> pd.DataFrame:
         "West Bromwich Albion F.C.": "WBA"
     }
     
-    df_subset["short_name"] = df_subset["team_name"].replace(name_map_short)
+    if "short_name" in df.columns:
+        df_subset["short_name"] = df["short_name"].copy()
+    else:
+        df_subset["short_name"] = pd.NA
+
+    mask_missing_short = df_subset["short_name"].isna() | (df_subset["short_name"].astype(str).str.strip() == "")
+    if mask_missing_short.any():
+        df_subset.loc[mask_missing_short, "short_name"] = (
+            df_subset.loc[mask_missing_short, "team_name"].replace(name_map_short)
+        )
     
     # Clean team names - remove F.C., A.F.C., etc.
     remove_words = ["F.C.", "F.C", "FC", "AFC", "A.F.C.", "A.F.C"]
@@ -192,14 +271,55 @@ def create_dim_stadium() -> pd.DataFrame:
     print("Creating dim_stadium:")
     
     # dữ liệu Dim_stadium
-    df = pd.read_csv(os.path.join(DATA_DIR, "dim_team.csv"))
+    # Handle malformed lines by skipping them (on_bad_lines='skip' for pandas >= 1.3.0)
+    try:
+        df = pd.read_csv(os.path.join(DATA_DIR, "dim_stadium.csv"), on_bad_lines='skip')
+    except TypeError:
+        # Fallback for older pandas versions
+        try:
+            df = pd.read_csv(os.path.join(DATA_DIR, "dim_stadium.csv"), error_bad_lines=False, warn_bad_lines=False)
+        except TypeError:
+            # If both fail, read with engine='python' which is more lenient
+            df = pd.read_csv(os.path.join(DATA_DIR, "dim_stadium.csv"), engine='python', on_bad_lines='skip')
+    
+    # Filter out rows that don't have exactly 3 columns (malformed data)
+    df = df[df.notna().sum(axis=1) == len(df.columns)].copy()
     
     # Loại bỏ dòng header trùng lặp (nếu có)
     header_row = list(df.columns)
     df = df[~df.apply(lambda row: list(row.values) == header_row, axis=1)].reset_index(drop=True)
     
-    df_subset = df[['venue_id', 'venue_label', 'capacity']].copy()
-    df_subset.columns = ['stadium_id', 'statium_name', 'capacity']
+    def pick_column(possible_names: list[str]) -> str:
+        for name in possible_names:
+            if name in df.columns:
+                return name
+            lowered = [c.lower() for c in df.columns]
+            if name.lower() in lowered:
+                return df.columns[lowered.index(name.lower())]
+        raise KeyError(f"Columns {possible_names} not found in dim_stadium source")
+
+    column_map = {
+        "stadium_id": ["venue_id", "stadium_id"],
+        "stadium_name": ["venue_label", "stadium_name", "statium_name"],
+        "capacity": ["capacity"],
+    }
+
+    resolved_columns = {key: pick_column(candidates) for key, candidates in column_map.items()}
+
+    df_subset = df[
+        [
+            resolved_columns["stadium_id"],
+            resolved_columns["stadium_name"],
+            resolved_columns["capacity"],
+        ]
+    ].copy()
+    df_subset.columns = ["stadium_id", "statium_name", "capacity"]
+    
+    # Filter out rows where stadium_id, stadium_name, or capacity is NaN (malformed data)
+    initial_count = len(df_subset)
+    df_subset = df_subset.dropna(subset=['stadium_id', 'statium_name', 'capacity']).copy()
+    if len(df_subset) < initial_count:
+        print(f"  -> Removed {initial_count - len(df_subset)} malformed rows")
     
     # Loại bỏ dòng có giá trị "capacity" trong cột capacity (nếu còn)
     df_subset = df_subset[df_subset['capacity'].astype(str).str.lower() != 'capacity'].reset_index(drop=True)
@@ -294,9 +414,10 @@ def create_fact_team_match() -> pd.DataFrame:
         "west ham united": "west ham",
         "wolverhampton wanderers": "wolves",
         "nottingham forest": "nott'ham forest",
-        "sunderland": "sunderland a.",  # Map "Sunderland" to "Sunderland A." to match dim_team
-        "swansea city": "swansea city a.",  # Map "Swansea City" to "Swansea City A." to match dim_team
-        "hull city": "hull city a."  # Map "Hull City" to "Hull City A." to match dim_team
+        "sunderland a.": "sunderland",  # Map "Sunderland A." variants to "Sunderland" to match dim_team
+        "sunderland a f c": "sunderland",
+        "swansea city a.": "swansea city a.",  # Keep as is - matches dim_team
+        "hull city a.": "hull city a."  # Keep as is - matches dim_team
     }
     df['team'] = df['team'].replace(name_map)
     df['opponent'] = df['opponent'].replace(name_map)
@@ -307,6 +428,8 @@ def create_fact_team_match() -> pd.DataFrame:
         # name đã lowercase rồi, chỉ cần remove words
         for w in remove_words:
             name = name.replace(w, "")
+        # Remove standalone "a." at the end (e.g., "sunderland a." -> "sunderland")
+        name = name.rstrip(" .").replace(" a.", "").replace(" a ", " ").strip()
         return name.strip()
     
     df['team'] = df['team'].apply(clean_team_name)
@@ -387,51 +510,50 @@ def create_fact_player_match() -> pd.DataFrame:
     # dữ liệu fact_playermatchstats
     df = pd.read_csv(
         os.path.join(DATA_DIR, "fbref_fact_player_match_stats.csv"),
-        header=[0, 1, 2]
+        header=0
     )
     
     df_match = pd.read_csv(os.path.join(DATA_PROCESSED_DIR, 'dim_match.csv'))
     df_player = pd.read_csv(os.path.join(DATA_PROCESSED_DIR, 'dim_player.csv'))
     df_team = pd.read_csv(os.path.join(DATA_PROCESSED_DIR, 'dim_team.csv'))
     
-    # Xác định tên cột dựa trên cấu trúc thực tế (match 2 level đầu)
-    season_col_name = [col for col in df.columns if col[0] == 'season' and col[1] == 'Unnamed: 1_level_1'][0]
-    game_col_name = [col for col in df.columns if col[0] == 'game' and col[1] == 'Unnamed: 2_level_1'][0]
-    team_col_name = [col for col in df.columns if col[0] == 'team' and col[1] == 'Unnamed: 3_level_1'][0]
-    player_col_name = [col for col in df.columns if col[0] == 'player' and col[1] == 'Unnamed: 4_level_1'][0]
+    # Xác định tên cột linh hoạt cho cả MultiIndex và single-level
+    season_col_name = _get_column(df, 'season', 'Unnamed: 1_level_1', 'season')
+    game_col_name = _get_column(df, 'game', 'Unnamed: 2_level_1', 'game')
+    team_col_name = _get_column(df, 'team', 'Unnamed: 3_level_1', 'team')
+    player_col_name = _get_column(df, 'player', 'Unnamed: 4_level_1', 'player')
     
     # Loại bỏ dòng đầu tiên nếu có giá trị "season" (dòng header thật trong file CSV)
     if len(df) > 0 and str(df.iloc[0][season_col_name]).lower() == 'season':
         df = df.iloc[1:].reset_index(drop=True)
         print(f"Đã loại bỏ dòng header trùng lặp. Số dòng còn lại: {len(df)}")
     
-    # Tìm các cột khác bằng cách match 2 level đầu
-    min_col = [col for col in df.columns if col[0] == 'min' and col[1] == 'Unnamed: 9_level_1'][0]
-    gls_col = [col for col in df.columns if col[0] == 'Performance' and col[1] == 'Gls'][0]
-    ast_col = [col for col in df.columns if col[0] == 'Performance' and col[1] == 'Ast'][0]
-    pk_col = [col for col in df.columns if col[0] == 'Performance' and col[1] == 'PK'][0]
-    pkatt_col = [col for col in df.columns if col[0] == 'Performance' and col[1] == 'PKatt'][0]
-    sh_col = [col for col in df.columns if col[0] == 'Performance' and col[1] == 'Sh'][0]
-    sot_col = [col for col in df.columns if col[0] == 'Performance' and col[1] == 'SoT'][0]
-    crdy_col = [col for col in df.columns if col[0] == 'Performance' and col[1] == 'CrdY'][0]
-    crdr_col = [col for col in df.columns if col[0] == 'Performance' and col[1] == 'CrdR'][0]
-    touches_col = [col for col in df.columns if col[0] == 'Performance' and col[1] == 'Touches'][0]
-    tkl_col = [col for col in df.columns if col[0] == 'Performance' and col[1] == 'Tkl'][0]
-    int_col = [col for col in df.columns if col[0] == 'Performance' and col[1] == 'Int'][0]
-    blocks_col = [col for col in df.columns if col[0] == 'Performance' and col[1] == 'Blocks'][0]
-    # Expected stats: xG và xAG (expected assists, còn gọi là xA)
-    xg_col = [col for col in df.columns if col[0] == 'Expected' and col[1] == 'xG'][0]
-    xag_col = [col for col in df.columns if col[0] == 'Expected' and col[1] == 'xAG'][0]
-    sca_col = [col for col in df.columns if col[0] == 'SCA' and col[1] == 'SCA'][0]
-    gca_col = [col for col in df.columns if col[0] == 'SCA' and col[1] == 'GCA'][0]
-    cmp_col = [col for col in df.columns if col[0] == 'Passes' and col[1] == 'Cmp'][0]
-    att_col = [col for col in df.columns if col[0] == 'Passes' and col[1] == 'Att'][0]
-    cmppct_col = [col for col in df.columns if col[0] == 'Passes' and col[1] == 'Cmp%'][0]
-    prgp_col = [col for col in df.columns if col[0] == 'Passes' and col[1] == 'PrgP'][0]
-    carries_col = [col for col in df.columns if col[0] == 'Carries' and col[1] == 'Carries'][0]
-    prgc_col = [col for col in df.columns if col[0] == 'Carries' and col[1] == 'PrgC'][0]
-    to_att_col = [col for col in df.columns if col[0] == 'Take-Ons' and col[1] == 'Att'][0]
-    to_succ_col = [col for col in df.columns if col[0] == 'Take-Ons' and col[1] == 'Succ'][0]
+    # Tìm các cột chỉ số (MultiIndex hoặc single)
+    min_col = _get_column(df, 'min', 'Unnamed: 9_level_1', 'min')
+    gls_col = _get_column(df, 'Performance', 'Gls', 'Performance_Gls')
+    ast_col = _get_column(df, 'Performance', 'Ast', 'Performance_Ast')
+    pk_col = _get_column(df, 'Performance', 'PK', 'Performance_PK')
+    pkatt_col = _get_column(df, 'Performance', 'PKatt', 'Performance_PKatt')
+    sh_col = _get_column(df, 'Performance', 'Sh', 'Performance_Sh')
+    sot_col = _get_column(df, 'Performance', 'SoT', 'Performance_SoT')
+    crdy_col = _get_column(df, 'Performance', 'CrdY', 'Performance_CrdY')
+    crdr_col = _get_column(df, 'Performance', 'CrdR', 'Performance_CrdR')
+    touches_col = _get_column(df, 'Performance', 'Touches', 'Performance_Touches')
+    tkl_col = _get_column(df, 'Performance', 'Tkl', 'Performance_Tkl')
+    int_col = _get_column(df, 'Performance', 'Int', 'Performance_Int')
+    blocks_col = _get_column(df, 'Performance', 'Blocks', 'Performance_Blocks')
+    xg_col = _get_column(df, 'Expected', 'xG', 'Expected_xG')
+    xag_col = _get_column(df, 'Expected', 'xAG', 'Expected_xAG')
+    sca_col = _get_column(df, 'SCA', 'SCA', 'SCA_SCA')
+    gca_col = _get_column(df, 'SCA', 'GCA', 'SCA_GCA')
+    cmp_col = _get_column(df, 'Passes', 'Cmp', 'Passes_Cmp')
+    att_col = _get_column(df, 'Passes', 'Att', 'Passes_Att')
+    cmppct_col = _get_column(df, 'Passes', 'Cmp%', 'Passes_Cmp%')
+    prgp_col = _get_column(df, 'Passes', 'PrgP', 'Passes_PrgP')
+    carries_col = _get_column(df, 'Carries', 'Carries', 'Carries_Carries')
+    prgc_col = _get_column(df, 'Carries', 'PrgC', 'Carries_PrgC')
+    to_att_col = _get_column(df, 'Take-Ons', 'Att', 'Take-Ons_Att')
+    to_succ_col = _get_column(df, 'Take-Ons', 'Succ', 'Take-Ons_Succ')
     
     df_subset = df[[season_col_name, game_col_name, team_col_name, player_col_name,
                     min_col, gls_col, xg_col, xag_col, ast_col, pk_col, pkatt_col, sh_col, sot_col,
@@ -460,9 +582,10 @@ def create_fact_player_match() -> pd.DataFrame:
         "West Ham United": "West ham",
         "Wolverhampton Wanderers": "Wolves",
         "Nottingham Forest": "Nott'ham forest",
-        "Sunderland": "Sunderland A.",  # Map "Sunderland" to "Sunderland A." to match dim_team
-        "Swansea City": "Swansea City A.",
-        "Hull City": "Hull City A."
+        "Sunderland A.": "Sunderland",  # Map "Sunderland A." variants to "Sunderland" to match dim_team
+        "Sunderland A F C": "Sunderland",
+        "Swansea City A.": "Swansea City A.",  # Keep as is - matches dim_team
+        "Hull City A.": "Hull City A."  # Keep as is - matches dim_team
     }
     df_subset["team"] = df_subset["team"].replace(name_map)
     
@@ -481,12 +604,21 @@ def create_fact_player_match() -> pd.DataFrame:
     df_subset['team'] = df_subset['team'].astype(str).str.strip().str.lower()
     df_team['team_name'] = df_team['team_name'].astype(str).str.strip().str.lower()
     
+    # Additional mapping after lowercasing to catch any remaining variants
+    name_map_lower = {
+        "sunderland a.": "sunderland",
+        "sunderland a f c": "sunderland",
+    }
+    df_subset['team'] = df_subset['team'].replace(name_map_lower)
+    
     # Apply clean function giống như trong create_dim_team
     remove_words = ["f.c.", "f.c", "fc", "afc", "a.f.c.", "a.f.c"]
     def clean_team_name(name):
         name_lower = name.lower()
         for w in remove_words:
             name_lower = name_lower.replace(w, "")
+        # Remove standalone "a." at the end (e.g., "sunderland a." -> "sunderland")
+        name_lower = name_lower.rstrip(" .").replace(" a.", "").replace(" a ", " ").strip()
         return name_lower.strip()
     
     df_subset['team'] = df_subset['team'].apply(clean_team_name)
@@ -602,9 +734,10 @@ def create_fact_team_point() -> pd.DataFrame:
         "Leicester": "Leicester City",
         "Norwich": "Norwich City",
         "Nottingham": "Nott'ham forest",
-        "Sunderland": "Sunderland A.",  # Map "Sunderland" to "Sunderland A." to match dim_team
-        "Swansea City": "Swansea City A.",
-        "Hull City": "Hull City A."
+        "Sunderland A.": "Sunderland",  # Map "Sunderland A." variants to "Sunderland" to match dim_team
+        "Sunderland A F C": "Sunderland",
+        "Swansea City A.": "Swansea City A.",  # Keep as is - matches dim_team
+        "Hull City A.": "Hull City A."  # Keep as is - matches dim_team
     }
     # Thay thế tên đội
     df["Team"] = df["Team"].replace(name_map)
@@ -613,12 +746,21 @@ def create_fact_team_point() -> pd.DataFrame:
     df['Team'] = df['Team'].astype(str).str.strip().str.lower()
     df_team['team_name'] = df_team['team_name'].astype(str).str.strip().str.lower()
     
+    # Additional mapping after lowercasing to catch any remaining variants
+    name_map_lower = {
+        "sunderland a.": "sunderland",
+        "sunderland a f c": "sunderland",
+    }
+    df['Team'] = df['Team'].replace(name_map_lower)
+    
     # Apply clean function giống như trong create_dim_team
     remove_words = ["f.c.", "f.c", "fc", "afc", "a.f.c.", "a.f.c"]
     def clean_team_name(name):
         name_lower = name.lower()
         for w in remove_words:
             name_lower = name_lower.replace(w, "")
+        # Remove standalone "a." at the end (e.g., "sunderland a." -> "sunderland")
+        name_lower = name_lower.rstrip(" .").replace(" a.", "").replace(" a ", " ").strip()
         return name_lower.strip()
     
     df['Team'] = df['Team'].apply(clean_team_name)
@@ -670,16 +812,16 @@ def create_fact_team_point() -> pd.DataFrame:
 
 if __name__ == "__main__":
     print("ETL Football - Transform Process")
-    
-    # Create dim phai chay truoc fact
+
+    # Create dimension tables (must be ready before fact tables)
     create_dim_player()
     create_dim_team()
     create_dim_stadium()
     create_dim_match()
-    
-    # Create fact phai chay sau dim
+
+    # Create fact tables (depend on dimension tables)
     create_fact_team_match()
     create_fact_player_match()
     create_fact_team_point()
-    
+
     print("Transform process completed!")

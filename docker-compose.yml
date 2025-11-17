@@ -1,7 +1,25 @@
 version: '3.8'
 
 services:
-  # Airflow Init (Chạy 1 lần để khởi tạo database schema)
+  postgres:
+    image: postgres:15
+    container_name: etl-football-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./docker/initdb:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DB:-airflow} -U ${POSTGRES_USER:-airflow}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   airflow-init:
     build:
       context: .
@@ -11,8 +29,10 @@ services:
       - -c
       - |
         echo "Waiting for PostgreSQL to be ready..."
-        sleep 5
-        echo "Initializing Airflow database..."
+        until pg_isready -h ${POSTGRES_HOST:-postgres} -p ${POSTGRES_PORT:-5432} -U ${POSTGRES_USER:-airflow}; do
+          sleep 2
+        done
+        echo "Initializing Airflow metadata database..."
         airflow db init
         echo "Creating Airflow admin user..."
         airflow users create \
@@ -24,30 +44,41 @@ services:
           --password airflow || true
         echo "Airflow initialization completed!"
     environment:
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@host.docker.internal/airflow
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
       ETL_FOOTBALL_BASE_DIR: /opt/airflow
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ETL_FOOTBALL
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
     volumes:
       - ./dags:/opt/airflow/dags
       - ./scr:/opt/airflow/scr
-    restart: "no"  # Chỉ chạy 1 lần
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
 
-  # Airflow Webserver (Web UI)
   airflow-webserver:
     build:
-      context: .           
+      context: .
       dockerfile: Dockerfile
-    command: webserver     
+    command: webserver
     ports:
-      - "8080:8080"        
+      - "8080:8080"
     environment:
-      # Kết nối đến PostgreSQL trên máy local từ container
-      # host.docker.internal = địa chỉ máy host từ container (Windows/Mac)
-      # Nếu Linux, có thể cần dùng IP của host hoặc network_mode: host
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@host.docker.internal/airflow
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
       AIRFLOW__WEBSERVER__BASE_URL: http://localhost:8080
       AIRFLOW__LOGGING__BASE_LOG_FOLDER: /opt/airflow/logs
       ETL_FOOTBALL_BASE_DIR: /opt/airflow
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ETL_FOOTBALL
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
     volumes:
       - ./dags:/opt/airflow/dags
       - ./scr:/opt/airflow/scr
@@ -55,27 +86,29 @@ services:
       - ./data_processed:/opt/airflow/data_processed
       - airflow-logs:/opt/airflow/logs
     depends_on:
+      postgres:
+        condition: service_healthy
       airflow-init:
         condition: service_completed_successfully
     restart: always
 
-  # Airflow Scheduler (Chạy DAGs)
   airflow-scheduler:
     build:
       context: .
       dockerfile: Dockerfile
-    command: scheduler    
+    command: scheduler
     environment:
-      # Kết nối đến PostgreSQL trên máy local từ container
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@host.docker.internal/airflow
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
       AIRFLOW__WEBSERVER__BASE_URL: http://localhost:8080
       AIRFLOW__LOGGING__BASE_LOG_FOLDER: /opt/airflow/logs
       ETL_FOOTBALL_BASE_DIR: /opt/airflow
-      # Proxy settings (uncomment and configure if using VPN/Proxy)
-      # HTTP_PROXY: http://your-proxy:port
-      # HTTPS_PROXY: http://your-proxy:port
-      # NO_PROXY: localhost,127.0.0.1,host.docker.internal
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ETL_FOOTBALL
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
     volumes:
       - ./dags:/opt/airflow/dags
       - ./scr:/opt/airflow/scr
@@ -83,9 +116,12 @@ services:
       - ./data_processed:/opt/airflow/data_processed
       - airflow-logs:/opt/airflow/logs
     depends_on:
+      postgres:
+        condition: service_healthy
       airflow-init:
         condition: service_completed_successfully
     restart: always
 
 volumes:
   airflow-logs:
+  postgres-data:

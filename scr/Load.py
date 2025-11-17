@@ -14,6 +14,13 @@ DATA_PROCESSED_DIR = os.path.join(BASE_DIR, "data_processed")
 os.makedirs(DATA_PROCESSED_DIR, exist_ok=True)
 
 
+def truncate_table(cursor, table_name, cascade=False):
+    """
+    Remove all records in the table before inserting fresh data.
+    Set cascade=True for tables referenced by foreign keys.
+    """
+    cascade_clause = " CASCADE" if cascade else ""
+    cursor.execute(f"TRUNCATE TABLE {table_name} RESTART IDENTITY{cascade_clause};")
 
 
 def load_config(filename='database.ini', section='postgresql'):
