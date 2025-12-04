@@ -1,345 +1,4 @@
 
-# import streamlit as st
-# import pandas as pd
-# import psycopg2
-# from configparser import ConfigParser
-# import plotly.express as px
-# import os
-# import matplotlib
-
-# # --- CẤU HÌNH VÀ KẾT NỐI DATABASE ---
-
-# @st.cache_resource
-# def load_config(filename: str = 'database.ini', section: str = 'postgresql') -> dict:
-#     """Load DB config from filename in current dir or script dir."""
-#     # locate file: prefer environment var ETL_FOOTBALL_BASE_DIR then current working dir
-#     base_dir = os.environ.get('ETL_FOOTBALL_BASE_DIR', os.getcwd())
-#     file_path = os.path.join(base_dir, filename)
-
-#     if not os.path.exists(file_path):
-#         # fall back to this file's directory
-#         file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
-
-#     if not os.path.exists(file_path):
-#         raise FileNotFoundError(f"Config file not found: {file_path}")
-
-#     parser = ConfigParser()
-#     parser.read(file_path)
-
-#     if not parser.has_section(section):
-#         raise Exception(f"Section '{section}' not found in {file_path}. Available: {parser.sections()}")
-
-#     return {k: v for k, v in parser.items(section)}
-
-
-# @st.cache_resource
-# def get_connection(config: dict):
-#     """Return a psycopg2 connection based on config dict."""
-#     conn = psycopg2.connect(**config)
-#     return conn
-# config = load_config()
-# conn = get_connection(config=config)
-
-# # --- CÁC HÀM LẤY DỮ LIỆU (SỬ DỤNG CACHE ĐỂ TĂNG TỐC) ---
-
-# @st.cache_data(ttl=600) # Cache dữ liệu trong 10 phút
-# def get_seasons():
-#     """Lấy danh sách các mùa giải"""
-#     df = pd.read_sql('SELECT season_name FROM dim_season ORDER BY season_name DESC', conn)
-#     return df['season_name'].tolist()
-
-# @st.cache_data(ttl=600)
-# def get_league_table(season_name):
-#     """Lấy bảng xếp hạng của một mùa giải"""
-#     query = """
-#         SELECT 
-#             ftp.Rank,
-#             dt.team_name AS "Đội bóng",
-#             ftp.mp AS "Trận",
-#             ftp.w AS "Thắng",
-#             ftp.d AS "Hòa",
-#             ftp.l AS "Thua",
-#             ftp.gf AS "BT",
-#             ftp.ga AS "BB",
-#             ftp.gd AS "HS",
-#             ftp.pts AS "Điểm"
-#         FROM fact_team_point ftp
-#         JOIN dim_team dt ON ftp.team_id = dt.team_id
-#         JOIN dim_season ds ON ftp.season_id = ds.season_id
-#         WHERE ds.season_name = %s
-#           AND ftp.Match_Category = 'overall'
-#         ORDER BY ftp.Rank;
-#     """
-#     df = pd.read_sql(query, conn, params=(season_name,))
-#     return df
-
-# @st.cache_data(ttl=600)
-# def get_top_scorers(season_name, limit=10):
-#     """Lấy top cầu thủ ghi bàn"""
-#     query = """
-#         SELECT 
-#             dp.player_name,
-#             dt.team_name,
-#             SUM(fpm.goals) as total_goals
-#         FROM fact_player_match fpm
-#         JOIN dim_player dp ON fpm.player_id = dp.player_id
-#         JOIN dim_team dt ON fpm.team_id = dt.team_id
-#         JOIN dim_season ds ON fpm.season = ds.season_id
-#         WHERE ds.season_name = %s
-#         GROUP BY dp.player_name, dt.team_name
-#         HAVING SUM(fpm.goals) > 0
-#         ORDER BY total_goals DESC
-#         LIMIT %s;
-#     """
-#     df = pd.read_sql(query, conn, params=(season_name, limit))
-#     return df
-
-# @st.cache_data(ttl=600)
-# def get_top_assisters(season_name, limit=10):
-#     """Lấy top cầu thủ kiến tạo"""
-#     query = """
-#         SELECT 
-#             dp.player_name,
-#             dt.team_name,
-#             SUM(fpm.assists) as total_assists
-#         FROM fact_player_match fpm
-#         JOIN dim_player dp ON fpm.player_id = dp.player_id
-#         JOIN dim_team dt ON fpm.team_id = dt.team_id
-#         JOIN dim_season ds ON fpm.season = ds.season_id
-#         WHERE ds.season_name = %s
-#         GROUP BY dp.player_name, dt.team_name
-#         HAVING SUM(fpm.assists) > 0
-#         ORDER BY total_assists DESC
-#         LIMIT %s;
-#     """
-#     df = pd.read_sql(query, conn, params=(season_name, limit))
-#     return df
-
-# @st.cache_data(ttl=600)
-# def get_season_overview_stats(season_name):
-#     """Lấy các thống kê tổng quan của mùa giải, xử lý trường hợp không có dữ liệu."""
-#     query = """
-#         SELECT
-#             COALESCE(COUNT(DISTINCT ftm.game_id), 0) as total_matches,
-#             COALESCE(SUM(ftm.GF), 0) as total_goals
-#         FROM fact_team_match ftm
-#         JOIN dim_season ds ON ftm.season = ds.season_id
-#         WHERE ds.season_name = %s;
-#     """
-#     df = pd.read_sql(query, conn, params=(season_name,))
-#     return df.iloc[0]
-# # --- CÁC HÀM LẤY DỮ LIỆU MỚI ---
-# @st.cache_data(ttl=600)
-# def get_teams(season_name):
-#     """Lấy danh sách các đội tham gia trong một mùa giải"""
-#     query = """
-#         SELECT DISTINCT dt.team_name
-#         FROM fact_team_point ftp
-#         JOIN dim_team dt ON ftp.team_id = dt.team_id
-#         JOIN dim_season ds ON ftp.season_id = ds.season_id
-#         WHERE ds.season_name = %s
-#         ORDER BY dt.team_name;
-#     """
-#     df = pd.read_sql(query, conn, params=(season_name,))
-#     return df['team_name'].tolist()
-
-# @st.cache_data(ttl=600)
-# def get_team_kpis(season_name, team_name):
-#     """Lấy các chỉ số chính của một đội"""
-#     query = """
-#         SELECT ftp.w, ftp.d, ftp.l, ftp.gf, ftp.ga, ftp.pts
-#         FROM fact_team_point ftp
-#         JOIN dim_team dt ON ftp.team_id = dt.team_id
-#         JOIN dim_season ds ON ftp.season_id = ds.season_id
-#         WHERE ds.season_name = %s AND dt.team_name = %s AND LOWER(ftp.match_category) = 'overall'
-#     """
-#     df = pd.read_sql(query, conn, params=(season_name, team_name))
-#     return df.iloc[0] if not df.empty else None
-
-# @st.cache_data(ttl=600)
-# def get_team_top_scorers(season_name, team_name, limit=5):
-#     """Lấy top cầu thủ ghi bàn của một đội"""
-#     query = """
-#         SELECT dp.player_name, SUM(fpm.goals) as total_goals
-#         FROM fact_player_match fpm
-#         JOIN dim_player dp ON fpm.player_id = dp.player_id
-#         JOIN dim_team dt ON fpm.team_id = dt.team_id
-#         JOIN dim_season ds ON fpm.season = ds.season_id
-#         WHERE ds.season_name = %s AND dt.team_name = %s
-#         GROUP BY dp.player_name
-#         HAVING SUM(fpm.goals) > 0
-#         ORDER BY total_goals DESC
-#         LIMIT %s;
-#     """
-#     return pd.read_sql(query, conn, params=(season_name, team_name, limit))
-# @st.cache_data(ttl=600)
-# def get_xg_vs_goals_data(season_name):
-#     query = """
-#         SELECT 
-#             dt.team_name,
-#             SUM(ftm.gf) as total_goals,
-#             SUM(ftm.xg) as total_xg
-#         FROM fact_team_match ftm
-#         JOIN dim_team dt ON ftm.team_id = dt.team_id
-#         JOIN dim_season ds ON ftm.season = ds.season_id
-#         WHERE ds.season_name = %s
-#         GROUP BY dt.team_name;
-#     """
-#     df = pd.read_sql(query, conn, params=(season_name,))
-#     df['performance'] = df['total_goals'] - df['total_xg']
-#     return df
-# # --- GIAO DIỆN DASHBOARD ---
-
-# st.set_page_config(page_title="Football Analytics Dashboard", layout="wide")
-
-# st.title("⚽ Dashboard Phân Tích Dữ Liệu Bóng Đá")
-# st.markdown("Một cái nhìn tổng quan về các mùa giải dựa trên dữ liệu bạn đã xử lý.")
-
-# # --- SIDEBAR FILTERS ---
-# st.sidebar.header("Bộ lọc")
-# seasons_list = get_seasons()
-# if seasons_list:
-#     selected_season = st.sidebar.selectbox("Chọn mùa giải", seasons_list)
-# else:
-#     st.sidebar.warning("Không tìm thấy dữ liệu mùa giải.")
-#     st.stop()
-
-
-# # --- HIỂN THỊ DỮ LIỆU THEO MÙA GIẢI ĐÃ CHỌN ---
-# st.header(f"Tổng quan mùa giải: {selected_season}")
-
-# # Các thẻ thống kê chính (KPIs)
-# overview_stats = get_season_overview_stats(selected_season)
-# total_matches = overview_stats['total_matches']
-# total_goals = overview_stats['total_goals']
-# goals_per_match = round(total_goals / total_matches, 2) if total_matches > 0 else 0
-
-# col1, col2, col3 = st.columns(3)
-# col1.metric("Tổng số trận đấu", f"{total_matches}")
-# col2.metric("Tổng số bàn thắng", f"{int(total_goals)}")
-# col3.metric("Bàn thắng / Trận", f"{goals_per_match}")
-
-# st.markdown("---")
-
-# # Bảng xếp hạng
-# st.subheader(f"Bảng xếp hạng mùa giải {selected_season}")
-# # Trong phần hiển thị bảng xếp hạng
-# league_table_df = get_league_table(selected_season)
-# st.dataframe(
-#     league_table_df.style.background_gradient(cmap='Greens', subset=['Điểm', 'BT'])
-#                              .apply(lambda x: ['background-color: #FFDDC1' if x.name < 4 else '' for i in x], axis=1),
-#     use_container_width=True
-# )
-# # Dòng .apply ở trên sẽ tô màu nền cho top 4 đội đầu bảng
-
-# st.markdown("---")
-
-# # Biểu đồ Top cầu thủ
-# col_scorers, col_assisters = st.columns(2)
-
-# with col_scorers:
-#     st.subheader("Vua phá lưới")
-#     top_scorers_df = get_top_scorers(selected_season)
-#     if not top_scorers_df.empty:
-#         fig_scorers = px.bar(top_scorers_df.sort_values('total_goals', ascending=True),
-#                              x='total_goals',
-#                              y='player_name',
-#                              orientation='h',
-#                              title=f"Top 10 cầu thủ ghi bàn hàng đầu",
-#                              labels={'player_name': 'Cầu thủ', 'total_goals': 'Số bàn thắng'},
-#                              text='total_goals',
-#                              hover_data=['team_name'])
-#         fig_scorers.update_layout(yaxis={'categoryorder':'total ascending'})
-#         st.plotly_chart(fig_scorers, use_container_width=True)
-#     else:
-#         st.warning("Không có dữ liệu Vua phá lưới cho mùa giải này.")
-
-
-# with col_assisters:
-#     st.subheader("Vua kiến tạo")
-#     top_assisters_df = get_top_assisters(selected_season)
-#     if not top_assisters_df.empty:
-#         fig_assisters = px.bar(top_assisters_df.sort_values('total_assists', ascending=True),
-#                                x='total_assists',
-#                                y='player_name',
-#                                orientation='h',
-#                                title=f"Top 10 cầu thủ kiến tạo hàng đầu",
-#                                labels={'player_name': 'Cầu thủ', 'total_assists': 'Số kiến tạo'},
-#                                text='total_assists',
-#                                hover_data=['team_name'],
-#                                color_discrete_sequence=px.colors.sequential.Viridis)
-#         fig_assisters.update_layout(yaxis={'categoryorder':'total ascending'})
-#         st.plotly_chart(fig_assisters, use_container_width=True)
-#     else:
-#         st.warning("Không có dữ liệu Vua kiến tạo cho mùa giải này.")
-
-# # Footer
-# st.sidebar.markdown("---")
-# # st.sidebar.info("Dashboard được xây dựng bằng Streamlit, Python và PostgreSQL.")
-# # --- TRONG PHẦN GIAO DIỆN DASHBOARD ---
-# st.title("⚽ Dashboard Phân Tích Dữ Liệu Bóng Đá")
-
-# # ... (sidebar của bạn giữ nguyên) ...
-
-# tab1, tab2 = st.tabs(["📊 Tổng quan mùa giải", "🏆 Phân tích đội bóng"])
-
-# with tab1:
-#     # --- Toàn bộ code hiển thị tổng quan mùa giải của bạn (bảng xếp hạng, top scorers...) nằm ở đây ---
-#     st.header(f"Tổng quan mùa giải: {selected_season}")
-#     # ... dán code cũ vào đây ...
-
-# with tab2:
-#     st.header(f"Phân tích chi tiết Đội bóng trong mùa giải {selected_season}")
-    
-#     teams_list = get_teams(selected_season)
-#     if teams_list:
-#         selected_team = st.selectbox("Chọn một đội bóng", teams_list)
-
-#         st.subheader(f"Thành tích của {selected_team}")
-#         team_kpis = get_team_kpis(selected_season, selected_team)
-
-#         if team_kpis is not None:
-#             col1, col2, col3, col4 = st.columns(4)
-#             col1.metric("Bàn thắng (GF)", team_kpis['gf'])
-#             col2.metric("Bàn thua (GA)", team_kpis['ga'])
-#             col3.metric("Điểm số (Pts)", team_kpis['pts'])
-#             col4.metric("Thắng-Hòa-Thua", f"{team_kpis['w']}-{team_kpis['d']}-{team_kpis['l']}")
-
-#             st.markdown("---")
-            
-#             st.subheader("Cầu thủ ghi bàn hàng đầu")
-#             team_scorers_df = get_team_top_scorers(selected_season, selected_team)
-#             if not team_scorers_df.empty:
-#                 fig = px.bar(team_scorers_df, x='player_name', y='total_goals',
-#                              title=f"Top 5 cầu thủ ghi bàn của {selected_team}",
-#                              labels={'player_name': 'Cầu thủ', 'total_goals': 'Số bàn thắng'},
-#                              text='total_goals')
-#                 st.plotly_chart(fig, use_container_width=True)
-#             else:
-#                 st.info(f"{selected_team} không có cầu thủ nào ghi bàn trong mùa giải này.")
-#         else:
-#             st.warning(f"Không tìm thấy dữ liệu KPI cho {selected_team}.")
-#     else:
-#         st.warning("Không có dữ liệu đội bóng cho mùa giải này.")
-# # --- Trong `with tab1:` ---
-# st.markdown("---")
-# st.subheader("Hiệu quả dứt điểm (Bàn thắng thực tế vs. Bàn thắng kỳ vọng)")
-# xg_df = get_xg_vs_goals_data(selected_season)
-# if not xg_df.empty:
-#     fig_xg = px.scatter(xg_df, x='total_xg', y='total_goals',
-#                         text='team_name',  # Hiển thị tên đội
-#                         title='So sánh hiệu suất tấn công của các đội',
-#                         labels={'total_xg': 'Tổng bàn thắng kỳ vọng (xG)', 'total_goals': 'Tổng bàn thắng thực tế (GF)'},
-#                         hover_data=['performance'])
-    
-#     # Vẽ đường chéo y=x để dễ so sánh
-#     fig_xg.add_shape(type='line', x0=xg_df['total_xg'].min(), y0=xg_df['total_xg'].min(),
-#                      x1=xg_df['total_xg'].max(), y1=xg_df['total_xg'].max(),
-#                      line=dict(color='Gray', dash='dash'))
-
-#     fig_xg.update_traces(textposition='top center')
-#     st.plotly_chart(fig_xg, use_container_width=True)
-#     st.caption("Các đội nằm phía trên đường nét đứt dứt điểm hiệu quả hơn kỳ vọng, và ngược lại.")
 import streamlit as st
 import pandas as pd
 import psycopg2
@@ -393,22 +52,22 @@ def get_league_table(season_name):
     """Lấy bảng xếp hạng của một mùa giải"""
     query = """
         SELECT 
-            ftp.Rank,
+            ftp."Rank",
             dt.team_name AS "Đội bóng",
-            ftp.mp AS "Trận",
-            ftp.w AS "Thắng",
-            ftp.d AS "Hòa",
-            ftp.l AS "Thua",
-            ftp.gf AS "BT",
-            ftp.ga AS "BB",
-            ftp.gd AS "HS",
-            ftp.pts AS "Điểm"
+            ftp."MP" AS "Trận",
+            ftp."W" AS "Thắng",
+            ftp."D" AS "Hòa",
+            ftp."L" AS "Thua",
+            ftp."GF" AS "BT",
+            ftp."GA" AS "BB",
+            ftp."GD" AS "HS",
+            ftp."Pts" AS "Điểm"
         FROM fact_team_point ftp
         JOIN dim_team dt ON ftp.team_id = dt.team_id
         JOIN dim_season ds ON ftp.season_id = ds.season_id
         WHERE ds.season_name = %s
-          AND ftp.Match_Category = 'overall'
-        ORDER BY ftp.Rank;
+          AND ftp."Match_Category" = 'overall'
+        ORDER BY ftp."Rank";
     """
     df = pd.read_sql(query, conn, params=(season_name,))
     return df
@@ -461,7 +120,7 @@ def get_season_overview_stats(season_name):
     query = """
         SELECT
             COALESCE(COUNT(DISTINCT ftm.game_id), 0) as total_matches,
-            COALESCE(SUM(ftm.GF), 0) as total_goals
+            COALESCE(SUM(ftm."GF"), 0) as total_goals
         FROM fact_team_match ftm
         JOIN dim_season ds ON ftm.season = ds.season_id
         WHERE ds.season_name = %s;
@@ -487,11 +146,11 @@ def get_teams(season_name):
 def get_team_kpis(season_name, team_name):
     """Lấy các chỉ số chính của một đội"""
     query = """
-        SELECT ftp.w, ftp.d, ftp.l, ftp.gf, ftp.ga, ftp.pts, ftp.rank
+        SELECT ftp."W", ftp."D", ftp."L", ftp."GF", ftp."GA", ftp."Pts", ftp."Rank"
         FROM fact_team_point ftp
         JOIN dim_team dt ON ftp.team_id = dt.team_id
         JOIN dim_season ds ON ftp.season_id = ds.season_id
-        WHERE ds.season_name = %s AND dt.team_name = %s AND LOWER(ftp.match_category) = 'overall'
+        WHERE ds.season_name = %s AND dt.team_name = %s AND LOWER(ftp."Match_Category") = 'overall'
     """
     df = pd.read_sql(query, conn, params=(season_name, team_name))
     return df.iloc[0] if not df.empty else None
@@ -519,8 +178,8 @@ def get_xg_vs_goals_data(season_name):
     query = """
         SELECT 
             dt.team_name,
-            SUM(ftm.gf) as total_goals,
-            SUM(ftm.xg) as total_xg
+            SUM(ftm."GF") as total_goals,
+            SUM(ftm."xG") as total_xg
         FROM fact_team_match ftm
         JOIN dim_team dt ON ftm.team_id = dt.team_id
         JOIN dim_season ds ON ftm.season = ds.season_id
@@ -542,14 +201,14 @@ def get_home_away_performance(season_name):
         FROM (
             SELECT 
                 dt.team_name,
-                SUM(CASE WHEN LOWER(ftp.match_category) = 'home' THEN ftp.pts ELSE 0 END) as home_pts,
-                SUM(CASE WHEN LOWER(ftp.match_category) = 'away' THEN ftp.pts ELSE 0 END) as away_pts,
-                SUM(CASE WHEN LOWER(ftp.match_category) = 'home' THEN ftp.w ELSE 0 END) as home_wins,
-                SUM(CASE WHEN LOWER(ftp.match_category) = 'away' THEN ftp.w ELSE 0 END) as away_wins
+                SUM(CASE WHEN LOWER(ftp."Match_Category") = 'home' THEN ftp."Pts" ELSE 0 END) as home_pts,
+                SUM(CASE WHEN LOWER(ftp."Match_Category") = 'away' THEN ftp."Pts" ELSE 0 END) as away_pts,
+                SUM(CASE WHEN LOWER(ftp."Match_Category") = 'home' THEN ftp."W" ELSE 0 END) as home_wins,
+                SUM(CASE WHEN LOWER(ftp."Match_Category") = 'away' THEN ftp."W" ELSE 0 END) as away_wins
             FROM fact_team_point ftp
             JOIN dim_team dt ON ftp.team_id = dt.team_id
             JOIN dim_season ds ON ftp.season_id = ds.season_id
-            WHERE ds.season_name = %s AND LOWER(ftp.match_category) IN ('home', 'away')
+            WHERE ds.season_name = %s AND LOWER(ftp."Match_Category") IN ('home', 'away')
             GROUP BY dt.team_name
         ) AS performance_summary
         ORDER BY (performance_summary.home_pts + performance_summary.away_pts) DESC;
@@ -563,13 +222,13 @@ def get_defensive_stats(season_name):
     query = """
         SELECT 
             dt.team_name,
-            ftp.ga as goals_conceded,
-            ftp.mp as matches_played,
-            ROUND(CAST(ftp.ga AS DECIMAL) / NULLIF(ftp.mp, 0), 2) as avg_goals_conceded
+            ftp."GA" as goals_conceded,
+            ftp."MP" as matches_played,
+            ROUND(CAST(ftp."GA" AS DECIMAL) / NULLIF(ftp."MP", 0), 2) as avg_goals_conceded
         FROM fact_team_point ftp
         JOIN dim_team dt ON ftp.team_id = dt.team_id
         JOIN dim_season ds ON ftp.season_id = ds.season_id
-        WHERE ds.season_name = %s AND LOWER(ftp.match_category) = 'overall'
+        WHERE ds.season_name = %s AND LOWER(ftp."Match_Category") = 'overall'
         ORDER BY avg_goals_conceded ASC;
     """
     return pd.read_sql(query, conn, params=(season_name,))
@@ -581,13 +240,13 @@ def get_offensive_stats(season_name):
     query = """
         SELECT 
             dt.team_name,
-            ftp.gf as goals_scored,
-            ftp.mp as matches_played,
-            ROUND(CAST(ftp.gf AS DECIMAL) / NULLIF(ftp.mp, 0), 2) as avg_goals_scored
+            ftp."GF" as goals_scored,
+            ftp."MP" as matches_played,
+            ROUND(CAST(ftp."GF" AS DECIMAL) / NULLIF(ftp."MP", 0), 2) as avg_goals_scored
         FROM fact_team_point ftp
         JOIN dim_team dt ON ftp.team_id = dt.team_id
         JOIN dim_season ds ON ftp.season_id = ds.season_id
-        WHERE ds.season_name = %s AND LOWER(ftp.match_category) = 'overall'
+        WHERE ds.season_name = %s AND LOWER(ftp."Match_Category") = 'overall'
         ORDER BY avg_goals_scored DESC;
     """
     return pd.read_sql(query, conn, params=(season_name,))
@@ -600,8 +259,8 @@ def get_season_comparison():
         SELECT 
             ds.season_name,
             COUNT(DISTINCT ftm.game_id) as total_matches,
-            SUM(ftm.gf) as total_goals,
-            ROUND(CAST(SUM(ftm.gf) AS DECIMAL) / NULLIF(COUNT(DISTINCT ftm.game_id), 0), 2) as avg_goals_per_match
+            SUM(ftm."GF") as total_goals,
+            ROUND(CAST(SUM(ftm."GF") AS DECIMAL) / NULLIF(COUNT(DISTINCT ftm.game_id), 0), 2) as avg_goals_per_match
         FROM fact_team_match ftm
         JOIN dim_season ds ON ftm.season = ds.season_id
         GROUP BY ds.season_name
@@ -615,19 +274,19 @@ def get_team_recent_form(season_name, team_name, limit=5):
     """Lấy phong độ gần đây của đội (đã sửa lỗi tên cột và logic)."""
     query = """
         SELECT 
-            dm.game_date,                            -- SỬA LỖI 1: dm.date -> dm.game_date
+            dm.match_date,                            -- SỬA LỖI 1: dm.date -> dm.game_date
             o_dt.team_name as opponent_name,
             ftm.venue,
             ftm.result,
-            ftm.gf as goals_for,
-            ftm.ga as goals_against
+            ftm."GF" as goals_for,
+            ftm."GA" as goals_against
         FROM fact_team_match ftm
         JOIN dim_team dt ON ftm.team_id = dt.team_id
         JOIN dim_team o_dt ON ftm.opponent_id = o_dt.team_id -- Join thêm 1 lần để lấy tên đối thủ
         JOIN dim_season ds ON ftm.season = ds.season_id
-        JOIN dim_match dm ON ftm.game_id = dm.game_id
+        JOIN dim_match dm ON ftm.game_id = dm.match_id
         WHERE ds.season_name = %s AND dt.team_name = %s
-        ORDER BY dm.game_date DESC                    -- SỬA LỖI 1: dm.date -> dm.game_date
+        ORDER BY dm.match_date DESC                    -- SỬA LỖI 1: dm.date -> dm.game_date
         LIMIT %s;
     """
     return pd.read_sql(query, conn, params=(season_name, team_name, limit))
@@ -639,18 +298,18 @@ def get_top_bottom_performers(season_name):
     query = """
         SELECT 
             dt.team_name,
-            ftp.pts,
-            ftp.gf,
-            ftp.ga,
-            ftp.gd,
-            ftp.w,
-            ftp.d,
-            ftp.l
+            ftp."Pts",
+            ftp."GF",
+            ftp."GA",
+            ftp."GD",
+            ftp."W",
+            ftp."D",
+            ftp."L"
         FROM fact_team_point ftp
         JOIN dim_team dt ON ftp.team_id = dt.team_id
         JOIN dim_season ds ON ftp.season_id = ds.season_id
-        WHERE ds.season_name = %s AND LOWER(ftp.match_category) = 'overall'
-        ORDER BY ftp.pts DESC;
+        WHERE ds.season_name = %s AND LOWER(ftp."Match_Category") = 'overall'
+        ORDER BY ftp."Pts" DESC;
     """
     return pd.read_sql(query, conn, params=(season_name,))
 
@@ -810,11 +469,11 @@ with tab2:
             # KPIs đội bóng
             st.subheader(f"Thành tích của {selected_team}")
             col1, col2, col3, col4, col5 = st.columns(5)
-            col1.metric("Hạng", f"#{int(team_kpis['rank'])}")
-            col2.metric("Điểm số", team_kpis['pts'])
-            col3.metric("Bàn thắng", team_kpis['gf'])
-            col4.metric("Bàn thua", team_kpis['ga'])
-            col5.metric("W-D-L", f"{team_kpis['w']}-{team_kpis['d']}-{team_kpis['l']}")
+            col1.metric("Hạng", f"#{int(team_kpis['Rank'])}")
+            col2.metric("Điểm số", team_kpis['Pts'])
+            col3.metric("Bàn thắng", team_kpis["GF"])
+            col4.metric("Bàn thua", team_kpis['GA'])
+            col5.metric("W-D-L", f"{team_kpis['W']}-{team_kpis['D']}-{team_kpis['L']}")
             
             st.markdown("---")
             
@@ -851,7 +510,7 @@ with tab2:
                     
                     for idx, row in recent_form.iterrows():
                         fig_form.add_trace(go.Bar(
-                            x=[row['game_date']],
+                            x=[row['match_date']],
                             y=[1],
                             name=row['result'],
                             marker_color=form_colors[row['result']],
@@ -1076,7 +735,7 @@ with tab4:
         
         with col1:
             st.markdown("#### Top 5 Xuất sắc nhất")
-            top_5 = performers_df.head(5)[['team_name', 'pts', 'gf', 'ga', 'w']]
+            top_5 = performers_df.head(5)[['team_name', 'Pts', "GF", 'GA', 'W']]
             top_5.columns = ['Đội', 'Điểm', 'BT', 'BB', 'Thắng']
             st.dataframe(
                 top_5.style.background_gradient(cmap='Greens'),
@@ -1086,7 +745,7 @@ with tab4:
         
         with col2:
             st.markdown("#### Top 5 Kém nhất")
-            bottom_5 = performers_df.tail(5)[['team_name', 'pts', 'gf', 'ga', 'l']]
+            bottom_5 = performers_df.tail(5)[['team_name', 'Pts', "GF", 'GA', 'L']]
             bottom_5.columns = ['Đội', 'Điểm', 'BT', 'BB', 'Thua']
             st.dataframe(
                 bottom_5.style.background_gradient(cmap='Reds_r'),
@@ -1168,8 +827,8 @@ with tab4:
     
     # Tính toán win rate
     if not performers_df.empty:
-        performers_df['win_rate'] = (performers_df['w'] / (performers_df['w'] + performers_df['d'] + performers_df['l']) * 100).round(1)
-        performers_df['points_per_game'] = (performers_df['pts'] / (performers_df['w'] + performers_df['d'] + performers_df['l'])).round(2)
+        performers_df['win_rate'] = (performers_df['W'] / (performers_df['W'] + performers_df['D'] + performers_df['L']) * 100).round(1)
+        performers_df['points_per_game'] = (performers_df['Pts'] / (performers_df['W'] + performers_df['D'] + performers_df['L'])).round(2)
         
         # Scatter: Win rate vs Points per game
         fig_consistency = px.scatter(
@@ -1179,9 +838,9 @@ with tab4:
             text='team_name',
             title='Tỷ lệ thắng vs Điểm trung bình/trận',
             labels={'win_rate': 'Tỷ lệ thắng (%)', 'points_per_game': 'Điểm TB/trận'},
-            color='pts',
+            color='Pts',
             color_continuous_scale='Viridis',
-            size='gf'
+            size="GF"
         )
         fig_consistency.update_traces(textposition='top center')
         st.plotly_chart(fig_consistency, use_container_width=True)

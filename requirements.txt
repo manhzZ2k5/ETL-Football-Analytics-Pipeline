@@ -12,7 +12,10 @@ webdriver-manager>=4.0.0
 playwright>=1.40.0
 soccerdata>=1.4.0
 tqdm>=4.65.0
-
+streamlit
+plotly.express
+plotly.graph_objects
+matplotlib
 # Airflow providers (Airflow core đã có sẵn trong base image)
 apache-airflow-providers-postgres>=5.10.0
 
