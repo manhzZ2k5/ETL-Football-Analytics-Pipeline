@@ -707,25 +707,24 @@ def create_fact_team_point() -> pd.DataFrame:
     
     df_team = pd.read_csv(os.path.join(DATA_PROCESSED_DIR, 'dim_team.csv'))
     
+    # --- Logic convert season giữ nguyên ---
     def convert_season(season):
-        # season dạng "2024/2025"
-        season_str = str(season)
-        if "/" in season_str:
-            parts = season_str.split("/")
+        season_str = str(season).strip().replace("/", "-")
+        if "-" in season_str:
+            parts = season_str.split("-")
             if len(parts) == 2:
-                y1 = parts[0][-2:]   # lấy 2 số cuối của năm đầu
-                y2 = parts[1][-2:]   # lấy 2 số cuối của năm sau
-                return int(y1 + y2)  # ghép lại thành 2425 (integer)
+                y1 = parts[0][-2:]
+                y2 = parts[1][-2:]
+                return int(y1 + y2)
         return season
-    
+
     if "Mùa giải" in df.columns:
         df["Mùa giải"] = df["Mùa giải"].apply(convert_season)
         df = df.rename(columns={"Mùa giải": "season_id"})
     elif "season_id" in df.columns:
-        # Nếu đã có season_id rồi, chỉ cần convert nếu chưa convert
         df["season_id"] = df["season_id"].apply(convert_season)
     
-    # tên khác form - normalize team names to match dim_team
+    # --- Mapping tên đội ---
     name_map = {
         "Ipswich": "Ipswich Town",
         "Luton": "Luton Town",
@@ -734,38 +733,34 @@ def create_fact_team_point() -> pd.DataFrame:
         "Leicester": "Leicester City",
         "Norwich": "Norwich City",
         "Nottingham": "Nott'ham forest",
-        "Sunderland A.": "Sunderland",  # Map "Sunderland A." variants to "Sunderland" to match dim_team
+        "Sunderland A.": "Sunderland",
         "Sunderland A F C": "Sunderland",
-        "Swansea City A.": "Swansea City A.",  # Keep as is - matches dim_team
-        "Hull City A.": "Hull City A."  # Keep as is - matches dim_team
+        "Swansea City A.": "Swansea City A.",
+        "Hull City A.": "Hull City A."
     }
-    # Thay thế tên đội
     df["Team"] = df["Team"].replace(name_map)
     
-    # Chuẩn hóa cho team
+    # Chuẩn hóa text
     df['Team'] = df['Team'].astype(str).str.strip().str.lower()
     df_team['team_name'] = df_team['team_name'].astype(str).str.strip().str.lower()
     
-    # Additional mapping after lowercasing to catch any remaining variants
     name_map_lower = {
         "sunderland a.": "sunderland",
         "sunderland a f c": "sunderland",
     }
     df['Team'] = df['Team'].replace(name_map_lower)
     
-    # Apply clean function giống như trong create_dim_team
     remove_words = ["f.c.", "f.c", "fc", "afc", "a.f.c.", "a.f.c"]
     def clean_team_name(name):
         name_lower = name.lower()
         for w in remove_words:
             name_lower = name_lower.replace(w, "")
-        # Remove standalone "a." at the end (e.g., "sunderland a." -> "sunderland")
         name_lower = name_lower.rstrip(" .").replace(" a.", "").replace(" a ", " ").strip()
         return name_lower.strip()
     
     df['Team'] = df['Team'].apply(clean_team_name)
     
-    # Map team → team_id
+    # Merge lấy team_id
     df = df.merge(
         df_team[['team_id', 'team_name']],
         left_on='Team',
@@ -773,34 +768,27 @@ def create_fact_team_point() -> pd.DataFrame:
         how='left'
     )
     
-    # Filter out rows with NULL team_id (unmatched team names)
-    initial_count = len(df)
-    null_team = df[df['team_id'].isna()]
-    
-    if len(null_team) > 0:
-        unmatched_teams = null_team['Team'].unique()
-        print(f"  Warning: {len(null_team)} rows with unmatched team names: {list(unmatched_teams)[:5]}")
-    
     df = df.dropna(subset=['team_id'])
-    filtered_count = initial_count - len(df)
-    if filtered_count > 0:
-        print(f"  -> Filtered out {filtered_count} rows with NULL team_id")
     
-    # Xóa cột thừa
     if 'team_name' in df.columns:
         df.drop(columns=['team_name'], inplace=True)
     
-    # đổi kiểu dữ liệu cột rank
-    df["Rank"] = df["Rank"].astype(int)
+    # --- SỬA LỖI RANK TẠI ĐÂY ---
+    # Logic: Chuyển sang string -> Tách bằng dấu chấm -> Lấy phần đầu tiên -> Chuyển sang int
+    # Ví dụ: "1." -> "1" | "1.0" -> "1" | "10." -> "10"
+    try:
+        df["Rank"] = df["Rank"].astype(str).str.split('.').str[0].astype(int)
+    except ValueError as e:
+        print(f"  Error converting Rank: {e}")
+        # Fallback: Nếu lỗi, ép về 0 hoặc giữ nguyên để debug (ở đây ta chọn xóa dòng lỗi)
+        df = df[pd.to_numeric(df["Rank"], errors='coerce').notnull()]
+        df["Rank"] = df["Rank"].astype(int)
+    # -----------------------------
     
-    # Tách GF và GA từ cột "GF:GA"
     df[["GF", "GA"]] = df["GF:GA"].str.split(":", expand=True)
-    
-    # Chuyển kiểu dữ liệu sang int
     df["GF"] = df["GF"].astype(int)
     df["GA"] = df["GA"].astype(int)
     
-    # Xóa cột cũ
     df.drop(columns=["GF:GA"], inplace=True)
     
     df_subset = df[["season_id", "Match_Category", "Rank", "team_id",
@@ -808,7 +796,6 @@ def create_fact_team_point() -> pd.DataFrame:
     
     save_table(df_subset, 'fact_team_point.csv', "fact_team_point")
     return df_subset
-
 
 if __name__ == "__main__":
     print("ETL Football - Transform Process")

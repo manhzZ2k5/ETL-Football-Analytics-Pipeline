@@ -77,9 +77,10 @@ def scrape_team_points(seasons_to_scrape=None):
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--remote-debugging-port=9222")
+    # Thêm user-agent để tránh bị chặn bởi Flashscore
+    chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36")
     
     # Tự động phát hiện Chrome binary path trong Docker
-    # Trong Docker, Chrome thường được cài ở /usr/bin/google-chrome
     if os.path.exists("/usr/bin/google-chrome"):
         chrome_options.binary_location = "/usr/bin/google-chrome"
     elif os.path.exists("/usr/bin/google-chrome-stable"):
@@ -88,6 +89,17 @@ def scrape_team_points(seasons_to_scrape=None):
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=chrome_options)
     
+    # --- CẤU HÌNH ID MÙA GIẢI (QUAN TRỌNG: FIX LỖI DÒNG 89) ---
+    # Map tên mùa giải sang ID của Flashscore/Flashfootball
+    SEASON_IDS = {
+        "2025-2026": "OEEq9Yvp",
+        "2024-2025": "lAkHuyP3",
+        "2023-2024": "I3O5jpB2",
+        "2022-2023": "nunhS7Vn",
+        "2021-2022": "6kJqdMr2",
+        "2020-2021": "zTRyeuJg"
+    }
+
     try:
         # Xác định mùa giải cần scrape
         if seasons_to_scrape is None:
@@ -103,10 +115,10 @@ def scrape_team_points(seasons_to_scrape=None):
                     pass
             
             if has_existing_data:
-                seasons = ["2025-2026"]  # Chỉ mùa mới từ 2025-26 trở đi
+                seasons = ["2025-2026"]  # Chỉ   mùa hiện tại nếu đã có dữ liệu cũ
                 print(f"Scraping NEW season: {seasons}")
             else:
-                seasons = ["2024-2025", "2023-2024", "2022-2023", "2021-2022", "2020-2021"]
+                seasons = ["2025-2026","2024-2025", "2023-2024", "2022-2023", "2021-2022", "2020-2021"]
                 print(f"First time scraping ALL seasons: {seasons}")
         else:
             seasons = seasons_to_scrape
@@ -114,8 +126,17 @@ def scrape_team_points(seasons_to_scrape=None):
         
         all_data = []
         for season in seasons:
-            print(f"Processing season: {season}")
-            base_url = f"https://www.flashscore.com/football/england/premier-league-{season}/#/lAkHuyP3/standings/"
+            # Kiểm tra xem mùa giải có ID trong config không
+            if season not in SEASON_IDS:
+                print(f"Warning: No ID found for season {season}, skipping...")
+                continue
+
+            season_id = SEASON_IDS[season]
+            print(f"Processing season: {season} (ID: {season_id})")
+            
+            # --- URL ĐÃ ĐƯỢC SỬA ---
+            # Sử dụng ID động thay vì hardcode
+            base_url = f"https://www.flashfootball.com/england/premier-league-{season}/#/{season_id}/standings/"
             
             categories = ["overall", "home", "away"]
             
@@ -125,23 +146,19 @@ def scrape_team_points(seasons_to_scrape=None):
                 
                 # Tăng wait time và thêm explicit wait cho table
                 print(f"  Loading {cat} standings...")
-                sleep(4)  # Tăng từ 2.5 lên 4 giây
+                sleep(3) 
                 
                 # Wait cho table load xong
                 try:
                     WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.CSS_SELECTOR, "div.tableCellRank"))
                     )
-                    sleep(1)  # Thêm 1 giây nữa để chắc chắn
+                    sleep(1)
                 except:
                     print(f"  Warning: Table not fully loaded for {cat}")
                 
-                # Lấy mùa giải hiển thị trên trang
-                try:
-                    season_label = driver.find_element(By.CSS_SELECTOR, "div.heading__info").text.strip()
-                except:
-                    season_label = season
-                
+                # Lấy dữ liệu
+                # Note: Sử dụng các selector phổ biến của Flashscore/Flashfootball
                 ranks = [r.text.strip() for r in driver.find_elements(By.CSS_SELECTOR, "div.tableCellRank")]
                 teams = [t.text.strip() for t in driver.find_elements(By.CSS_SELECTOR, "a.tableCellParticipant__name")]
                 values = [v.text.strip() for v in driver.find_elements(By.CSS_SELECTOR, "span.table__cell.table__cell--value")]
@@ -149,7 +166,8 @@ def scrape_team_points(seasons_to_scrape=None):
                 forms_all = driver.find_elements(By.CSS_SELECTOR, "div.table__cell.table__cell--form")
                 recent_forms = []
                 for form_cell in forms_all:
-                    results = [s.text.strip() for s in form_cell.find_elements(By.CSS_SELECTOR, "span.wcl-scores-simple-text-01_8lVyp")]
+                    # Lấy text form (W/D/L)
+                    results = [s.text.strip() for s in form_cell.find_elements(By.CSS_SELECTOR, "[class*='wcl-scores-simple-text']")]
                     form_str = "".join(results)
                     # Clean dấu "?" và các ký tự đặc biệt khác
                     form_str = form_str.replace("?", "").strip()
@@ -163,20 +181,21 @@ def scrape_team_points(seasons_to_scrape=None):
                     print(f"  {cat.upper()}: {teams[0]} - MP:{rows[0][0]} W:{rows[0][1]} GF:GA:{rows[0][4]} Form:{recent_forms[0] if recent_forms else 'N/A'}")
                 
                 for i, row in enumerate(rows):
-                    all_data.append({
-                        "Mùa giải": season_label,
-                        "Match_Category": cat,
-                        "Rank": ranks[i] if i < len(ranks) else "",
-                        "Team": teams[i] if i < len(teams) else "",
-                        "MP": row[0] if len(row) > 0 else "",
-                        "W": row[1] if len(row) > 1 else "",
-                        "D": row[2] if len(row) > 2 else "",
-                        "L": row[3] if len(row) > 3 else "",
-                        "GF:GA": row[4] if len(row) > 4 else "",
-                        "GD": row[5] if len(row) > 5 else "",
-                        "Pts": row[6] if len(row) > 6 else "",
-                        "Recent_Form": recent_forms[i] if i < len(recent_forms) else ""
-                    })
+                    if i < len(teams):
+                        all_data.append({
+                            "Mùa giải": season, # Dùng biến loop season để đảm bảo chuẩn format
+                            "Match_Category": cat,
+                            "Rank": ranks[i] if i < len(ranks) else "",
+                            "Team": teams[i] if i < len(teams) else "",
+                            "MP": row[0] if len(row) > 0 else "",
+                            "W": row[1] if len(row) > 1 else "",
+                            "D": row[2] if len(row) > 2 else "",
+                            "L": row[3] if len(row) > 3 else "",
+                            "GF:GA": row[4] if len(row) > 4 else "",
+                            "GD": row[5] if len(row) > 5 else "",
+                            "Pts": row[6] if len(row) > 6 else "",
+                            "Recent_Form": recent_forms[i] if i < len(recent_forms) else ""
+                        })
         
         columns = ["Mùa giải", "Match_Category", "Rank", "Team", "MP", "W", "D", "L", "GF:GA", "GD", "Pts", "Recent_Form"]
         team_points_df = pd.DataFrame(all_data, columns=columns)
@@ -203,7 +222,7 @@ def scrape_team_points(seasons_to_scrape=None):
 def get_seasons_to_extract():
     """
     - Nếu chưa có dữ liệu: extract tất cả từ 2021 (5 mùa)
-    - Nếu đã có dữ liệu: chỉ extract mùa mới từ 2526 trở đi
+    - Nếu đã có dữ liệu: chỉ extract mùa mới từ 2024-25 trở đi
     """
     LAST_EXTRACT_DATE_FILE = os.path.join(DATA_RAW_DIR, ".last_extract_date.txt")
     
@@ -220,9 +239,9 @@ def get_seasons_to_extract():
             pass
     
     if has_existing_data:
-        # Chỉ cào mùa giải mới từ 2526 trở đi (đã có mùa trước rồi)
-        print("Extracting NEW seasons only (from 2025-26 onwards)...")
-        return ['2526'] 
+        # Chỉ cào mùa giải mới nhất 2425 (đã có mùa trước rồi)
+        print("Extracting NEW seasons only (2024-25)...")
+        return ['2425'] # Đã sửa thành 2425 vì mùa 2526 chưa có
     else:
         # cào 5 mùa
         print("First time extraction: extracting ALL seasons (2020-21 to 2024-25)...")
@@ -243,16 +262,6 @@ def save_last_extract_date():
 def merge_with_existing_raw_data(new_df, file_path, key_cols):
     """
     Merge dữ liệu mới với dữ liệu cũ trong file raw (incremental extract).
-    - Nếu file cũ không tồn tại: trả về new_df
-    - Nếu file cũ tồn tại: merge và loại bỏ duplicates dựa trên key_cols
-    
-    Args:
-        new_df: DataFrame chứa dữ liệu mới
-        file_path: Đường dẫn tới file raw
-        key_cols: List các cột dùng để identify duplicates
-    
-    Returns:
-        DataFrame đã merge
     """
     new_df = flatten_dataframe_columns(new_df)
 
@@ -390,15 +399,17 @@ def main():
     print(f"Saved: {out_path} ({len(team_season_df)} records)")
     
 
+    # ===== FLASHSCORE SCRAPING =====
+    print("\n6. Scraping team points from Flashscore/Flashfootball...")
     
-    print("\n6. Scraping team points from Flashscore...")
+    # Lưu ý: Hàm này tự quản lý list mùa giải bên trong nó (dựa trên việc có data cũ hay chưa)
+    # Nếu bạn muốn force chạy 5 mùa, hãy xoá file .last_extract_date.txt trước khi chạy
     scrape_team_points()
     
     # Lưu ngày extract cuối cùng
     save_last_extract_date()
     
     print("Extract completed")
-
 
 
 if __name__ == "__main__":

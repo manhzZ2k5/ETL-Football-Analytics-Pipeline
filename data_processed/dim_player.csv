@@ -5,7 +5,7 @@ player_id,player,pos,nation,born
 4,Aaron Lennon,"MF,FW",ENG,1987
 5,Aaron Ramsdale,GK,ENG,1998
 6,Aaron Ramsey,"MF,FW",ENG,2003
-7,Aaron Wan-Bissaka,DF,COD,1997
+7,Aaron Wan-Bissaka,"DF,MF",COD,1997
 8,Abdoulaye Doucouré,MF,MLI,1993
 9,Abdukodir Khusanov,DF,UZB,2004
 10,Abdul Fatawu Issahaku,FW,GHA,2004
@@ -18,7 +18,7 @@ player_id,player,pos,nation,born
 17,Adam Smith,DF,ENG,1991
 18,Adam Webster,DF,ENG,1995
 19,Adam Wharton,MF,ENG,2004
-20,Adama Traoré,"FW,MF",ESP,1996
+20,Adama Traoré,FW,ESP,1996
 21,Ademola Lookman,"FW,MF",NGA,1997
 22,Adrien Truffert,DF,FRA,2001
 23,Adrián,GK,ESP,1987
@@ -27,7 +27,7 @@ player_id,player,pos,nation,born
 26,Ainsley Maitland-Niles,"MF,DF",ENG,1997
 27,Albert Grønbaek,"FW,MF",DEN,2001
 28,Albert Sambi Lokonga,MF,BEL,1999
-29,Alejandro Garnacho,"FW,MF",ARG,2004
+29,Alejandro Garnacho,FW,ARG,2004
 30,Alejo Véliz,FW,ARG,2003
 31,Aleksandar Mitrović,FW,SRB,1994
 32,Alex Iwobi,"FW,MF",NGA,1996
@@ -43,7 +43,7 @@ player_id,player,pos,nation,born
 42,Alexander Isak,FW,SWE,1999
 43,Alexandre Jankewitz,MF,SUI,2001
 44,Alexandre Lacazette,FW,FRA,1991
-45,Alexis Mac Allister,"MF,FW",ARG,1998
+45,Alexis Mac Allister,MF,ARG,1998
 46,Alfie Dorrington,DF,ENG,2005
 47,Alfie Doughty,DF,ENG,1999
 48,Alfie Gilchrist,DF,ENG,2003
@@ -56,7 +56,7 @@ player_id,player,pos,nation,born
 55,Allan Tchaptchet,DF,FRA,2001
 56,Alphonse Areola,GK,FRA,1993
 57,Altay Bayındır,GK,TUR,1998
-58,Amad Diallo,FW,CIV,2002
+58,Amad Diallo,"DF,MF",CIV,2002
 59,Amadou Diallo,MF,ENG,2003
 60,Amadou Onana,MF,BEL,2001
 61,Amari'i Bell,DF,JAM,1994
@@ -86,8 +86,8 @@ player_id,player,pos,nation,born
 85,Angus Gunn,GK,SCO,1996
 86,Anis Ben Slimane,MF,TUN,2001
 87,Ansu Fati,"MF,FW",ESP,2002
-88,Anthony Elanga,FW,SWE,2002
-89,Anthony Gordon,"FW,MF",ENG,2001
+88,Anthony Elanga,"FW,MF",SWE,2002
+89,Anthony Gordon,FW,ENG,2001
 90,Anthony Martial,FW,FRA,1995
 91,Antoine Semenyo,"FW,MF",GHA,2000
 92,Anton Stach,MF,GER,1998
@@ -99,7 +99,7 @@ player_id,player,pos,nation,born
 98,Antwoine Hackford,DF,ENG,2004
 99,Anwar El Ghazi,FW,NED,1995
 100,Ao Tanaka,MF,JPN,1998
-101,Archie Gray,"DF,MF",ENG,2006
+101,Archie Gray,MF,ENG,2006
 102,Arijanet Muric,GK,KVX,1998
 103,Armando Broja,FW,ALB,2001
 104,Armel Bella Kotchap,DF,GER,2001
@@ -135,8 +135,8 @@ player_id,player,pos,nation,born
 134,Ben Osborn,"MF,DF",ENG,1994
 135,Ben Parkinson,FW,ENG,2005
 136,Ben Pearson,MF,ENG,1995
-137,Ben White,"DF,MF",ENG,1997
-138,Ben Winterburn,"MF,FW",ENG,2004
+137,Ben White,DF,ENG,1997
+138,Ben Winterburn,MF,ENG,2004
 139,Benicio Boaitey,"FW,DF",ENG,2004
 140,Benjamin Mendy,DF,FRA,1994
 141,Benjamin Šeško,FW,SVN,2003
@@ -144,9 +144,9 @@ player_id,player,pos,nation,born
 143,Benson Manuel,"MF,FW",ANG,1997
 144,Bernard,"MF,FW",BRA,1992
 145,Bernardo,"DF,MF",BRA,1995
-146,Bernardo Silva,"MF,FW",POR,1994
+146,Bernardo Silva,MF,POR,1994
 147,Bernd Leno,GK,GER,1992
-148,Bertrand Traoré,FW,BFA,1995
+148,Bertrand Traoré,"FW,MF",BFA,1995
 149,Beto,FW,GNB,1998
 150,Bilal El Khannouss,"MF,FW",MAR,2004
 151,Billy Gilmour,MF,SCO,2001
@@ -163,21 +163,21 @@ player_id,player,pos,nation,born
 162,Brandon Austin,GK,ENG,1999
 163,Brandon Williams,DF,ENG,2000
 164,Branislav Ivanović,DF,SRB,1984
-165,Brenden Aaronson,"MF,FW",USA,2000
-166,Brennan Johnson,"FW,MF",WAL,2001
+165,Brenden Aaronson,"FW,MF",USA,2000
+166,Brennan Johnson,FW,WAL,2001
 167,Brian Brobbey,FW,NED,2002
 168,Bruno Fernandes,MF,POR,1994
 169,Bruno Guimarães,MF,BRA,1997
 170,Bryan Gil,"FW,MF",ESP,2001
-171,Bryan Mbeumo,FW,CMR,1999
-172,Bukayo Saka,"FW,MF",ENG,2001
+171,Bryan Mbeumo,MF,CMR,1999
+172,Bukayo Saka,FW,ENG,2001
 173,Bénie Traoré,"FW,MF",CIV,2002
 174,CJ Egan-Riley,DF,ENG,2003
 175,Cafú,MF,POR,1993
 176,Caleb Kporha,DF,ENG,2006
 177,Caleb Okoli,DF,ITA,2001
 178,Caleb Watts,MF,AUS,2002
-179,Callum Hudson-Odoi,"FW,DF",ENG,2000
+179,Callum Hudson-Odoi,FW,ENG,2000
 180,Callum Marshall,FW,NIR,2004
 181,Callum Robinson,"FW,MF",IRL,1995
 182,Callum Wilson,FW,ENG,1992
@@ -234,7 +234,7 @@ player_id,player,pos,nation,born
 233,Clément Lenglet,DF,FRA,1995
 234,Cody Drameh,"DF,MF",ENG,2001
 235,Cody Gakpo,"FW,MF",NED,1999
-236,Cole Palmer,"FW,MF",ENG,2002
+236,Cole Palmer,MF,ENG,2002
 237,Connor Roberts,DF,WAL,1995
 238,Connor Ronan,MF,IRL,1998
 239,Conor Bradley,DF,NIR,2003
@@ -249,7 +249,7 @@ player_id,player,pos,nation,born
 248,Cristhian Mosquera,DF,ESP,2004
 249,Cristian Romero,DF,ARG,1998
 250,Cristiano Ronaldo,FW,POR,1985
-251,Crysencio Summerville,"MF,FW",NED,2001
+251,Crysencio Summerville,"FW,MF",NED,2001
 252,Cucho,"FW,MF",COL,1999
 253,Curtis Jones,MF,ENG,2001
 254,Cédric Soares,DF,POR,1991
@@ -263,7 +263,7 @@ player_id,player,pos,nation,born
 262,Dan Neil,MF,ENG,2001
 263,Dan Nlundulu,"FW,MF",ENG,1999
 264,Dane Scarlett,FW,ENG,2004
-265,Dango Ouattara,"MF,FW",BFA,2002
+265,Dango Ouattara,FW,BFA,2002
 266,Dani Ceballos,MF,ESP,1996
 267,Daniel Amartey,DF,GHA,1994
 268,Daniel Bachmann,GK,AUT,1994
@@ -314,7 +314,7 @@ player_id,player,pos,nation,born
 313,Diego Carlos,DF,BRA,1993
 314,Diego Coppola,DF,ITA,2003
 315,Diego Costa,FW,ESP,1988
-316,Diego Gómez,MF,PAR,2003
+316,Diego Gómez,"MF,FW",PAR,2003
 317,Diego Llorente,DF,ESP,1993
 318,Dilane Bakwa,"FW,MF",FRA,2002
 319,Dimitris Giannoulis,DF,GRE,1995
@@ -322,21 +322,21 @@ player_id,player,pos,nation,born
 321,Diogo Jota,FW,POR,1996
 322,Divin Mubama,FW,ENG,2004
 323,Divock Origi,FW,BEL,1995
-324,Djed Spence,"FW,DF",ENG,2000
+324,Djed Spence,DF,ENG,2000
 325,Dominic Ballard,"FW,MF",ENG,2005
 326,Dominic Calvert-Lewin,FW,ENG,1997
 327,Dominic Sadi,FW,ENG,2003
-328,Dominic Solanke,"FW,MF",ENG,1997
+328,Dominic Solanke,FW,ENG,1997
 329,Dominic Thompson,DF,ENG,2000
-330,Dominik Szoboszlai,MF,HUN,2000
+330,Dominik Szoboszlai,"MF,DF",HUN,2000
 331,Donny van de Beek,"MF,FW",NED,1997
 332,Donyell Malen,FW,NED,1999
 333,Douglas Luiz,MF,BRA,1998
 334,Duje Ćaleta-Car,DF,CRO,1996
 335,Dwight Gayle,"FW,MF",ENG,1990
-336,Dwight McNeil,MF,ENG,1999
-337,Eberechi Eze,MF,ENG,1998
-338,Eddie Nketiah,FW,ENG,1999
+336,Dwight McNeil,"FW,MF",ENG,1999
+337,Eberechi Eze,"MF,FW",ENG,1998
+338,Eddie Nketiah,"MF,FW",ENG,1999
 339,Ederson,GK,BRA,1993
 340,Edinson Cavani,FW,URU,1987
 341,Edmond-Paris Maghoma,"MF,FW",ENG,2001
@@ -354,13 +354,13 @@ player_id,player,pos,nation,born
 353,Emerson Palmieri,DF,ITA,1994
 354,Emi Buendía,"MF,FW",ARG,1996
 355,Emil Krafth,DF,SWE,1994
-356,Emile Smith Rowe,"MF,FW",ENG,2000
+356,Emile Smith Rowe,MF,ENG,2000
 357,Emiliano Marcondes,MF,DEN,1995
 358,Emiliano Martínez,GK,ARG,1992
 359,Emmanuel Agbadou,DF,CIV,1997
 360,Emmanuel Dennis,"FW,MF",NGA,1997
 361,Enda Stevens,DF,IRL,1990
-362,Enes Ünal,"FW,MF",TUR,1997
+362,Enes Ünal,"MF,FW",TUR,1997
 363,Enock Mwepu,MF,ZAM,1998
 364,Enso Gonzalez,"MF,DF",PAR,2005
 365,Enzo Fernández,MF,ARG,2001
@@ -372,8 +372,8 @@ player_id,player,pos,nation,born
 371,Erik Pieters,"DF,MF",NED,1988
 372,Erling Haaland,FW,NOR,2000
 373,Estêvão Willian,FW,BRA,2007
-374,Ethan Ampadu,"DF,MF",WAL,2000
-375,Ethan Nwaneri,FW,ENG,2007
+374,Ethan Ampadu,MF,WAL,2000
+375,Ethan Nwaneri,MF,ENG,2007
 376,Ethan Pinnock,DF,JAM,1993
 377,Ethan Wheatley,FW,ENG,2006
 378,Evan Ferguson,MF,IRL,2004
@@ -384,18 +384,18 @@ player_id,player,pos,nation,born
 383,Fabian Delph,"MF,DF",ENG,1989
 384,Fabian Schär,DF,SUI,1991
 385,Fabinho,"DF,MF",BRA,1993
-386,Fabio Carvalho,"MF,FW",POR,2002
+386,Fabio Carvalho,"FW,MF",POR,2002
 387,Fabio Vieira,"MF,FW",POR,2000
 388,Fabián Balbuena,DF,PAR,1991
-389,Facundo Buonanotte,"FW,MF",ARG,2004
+389,Facundo Buonanotte,MF,ARG,2004
 390,Facundo Pellistri,"FW,MF",URU,2001
-391,Federico Chiesa,FW,ITA,1997
+391,Federico Chiesa,"FW,MF",ITA,1997
 392,Federico Fernández,DF,ARG,1989
 393,Felipe,DF,BRA,1989
 394,Felipe Anderson,"FW,MF",BRA,1993
 395,Femi Seriki,MF,ENG,2002
 396,Fer López,"MF,FW",ESP,2004
-397,Ferdi Kadioglu,"DF,MF",TUR,1999
+397,Ferdi Kadioglu,"DF,FW",TUR,1999
 398,Fernandinho,MF,BRA,1985
 399,Fernando Marçal,"DF,MF",BRA,1989
 400,Ferrán Torres,"FW,MF",ESP,2000
@@ -432,7 +432,7 @@ player_id,player,pos,nation,born
 431,George Earthy,FW,ENG,2004
 432,George Edmundson,DF,ENG,1997
 433,George Hirst,FW,SCO,1999
-434,Georginio Rutter,"FW,MF",FRA,2002
+434,Georginio Rutter,"MF,FW",FRA,2002
 435,Georginio Wijnaldum,MF,NED,1990
 436,Gianluca Scamacca,FW,ITA,1999
 437,Gianluigi Donnarumma,GK,ITA,1999
@@ -443,7 +443,7 @@ player_id,player,pos,nation,born
 442,Gonzalo Montiel,DF,ARG,1997
 443,Gonçalo Guedes,"FW,MF",POR,1996
 444,Grady Diangana,"MF,FW",COD,1998
-445,Granit Xhaka,"MF,DF",SUI,1992
+445,Granit Xhaka,MF,SUI,1992
 446,Grant Hanley,DF,SCO,1991
 447,Guglielmo Vicario,GK,ITA,1996
 448,Guido Rodríguez,MF,ARG,1994
@@ -455,12 +455,12 @@ player_id,player,pos,nation,born
 454,Hakim Ziyech,"MF,FW",MAR,1993
 455,Hal Robson-Kanu,FW,WAL,1989
 456,Halil Dervişoğlu,MF,TUR,1999
-457,Hamed Junior Traorè,"FW,MF",CIV,2000
+457,Hamed Junior Traorè,MF,CIV,2000
 458,Hamza Choudhury,MF,BAN,1997
 459,Han-Noah Massengo,"MF,DF",FRA,2001
 460,Hannes Delcroix,DF,HAI,1999
 461,Hannibal Mejbri,MF,TUN,2003
-462,Harrison Armstrong,MF,ENG,2007
+462,Harrison Armstrong,FW,ENG,2007
 463,Harrison Ashby,DF,SCO,2001
 464,Harrison Reed,MF,ENG,1995
 465,Harry Amass,DF,ENG,2007
@@ -470,21 +470,21 @@ player_id,player,pos,nation,born
 469,Harry Maguire,DF,ENG,1993
 470,Harry Souttar,DF,AUS,1998
 471,Harry Toffolo,DF,ENG,1995
-472,Harry Wilson,FW,WAL,1997
+472,Harry Wilson,"FW,MF",WAL,1997
 473,Harry Winks,MF,ENG,1996
-474,Harvey Barnes,"FW,MF",ENG,1997
-475,Harvey Elliott,MF,ENG,2003
+474,Harvey Barnes,FW,ENG,1997
+475,Harvey Elliott,"MF,FW",ENG,2003
 476,Harvey White,MF,ENG,2001
 477,Hassane Kamara,DF,CIV,1994
 478,Hjalmar Ekdal,DF,SWE,1998
-479,Hugo Bueno,DF,ESP,2002
+479,Hugo Bueno,"DF,MF",ESP,2002
 480,Hugo Ekitike,FW,FRA,2002
 481,Hugo Lloris,GK,FRA,1986
-482,Hwang Hee-chan,"FW,MF",KOR,1996
+482,Hwang Hee-chan,FW,KOR,1996
 483,Hákon Valdimarsson,GK,ISL,2001
 484,Héctor Bellerín,"DF,MF",ESP,1995
 485,Hélder Costa,"MF,FW",ANG,1994
-486,Ian Maatsen,"FW,MF",NED,2002
+486,Ian Maatsen,DF,NED,2002
 487,Ian Poveda,MF,ENG,2000
 488,Ibrahim Sangaré,MF,CIV,1997
 489,Ibrahima Diallo,MF,FRA,1999
@@ -493,7 +493,7 @@ player_id,player,pos,nation,born
 492,Igor,DF,BRA,1998
 493,Igor Jesus,"FW,MF",BRA,2001
 494,Ilia Gruev,MF,BUL,2000
-495,Iliman Ndiaye,MF,SEN,2000
+495,Iliman Ndiaye,FW,SEN,2000
 496,Illan Meslier,GK,FRA,2000
 497,Illia Zabarnyi,DF,UKR,2002
 498,Imran Louza,MF,MAR,1999
@@ -501,7 +501,7 @@ player_id,player,pos,nation,born
 500,Isaac Hayden,"MF,DF",JAM,1995
 501,Isaac Price,MF,NIR,2003
 502,Islam Slimani,FW,ALG,1988
-503,Ismaila Sarr,"FW,MF",SEN,1998
+503,Ismaila Sarr,"MF,FW",SEN,1998
 504,Issa Diop,DF,FRA,1997
 505,Issa Kaboré,DF,BFA,2001
 506,Ivan Cavaleiro,FW,POR,1993
@@ -512,9 +512,9 @@ player_id,player,pos,nation,born
 511,Jack Clarke,"FW,MF",ENG,2000
 512,Jack Colback,MF,ENG,1989
 513,Jack Cork,MF,ENG,1989
-514,Jack Grealish,"FW,MF",ENG,1995
-515,Jack Harrison,"MF,FW",ENG,1996
-516,Jack Hinshelwood,FW,ENG,2005
+514,Jack Grealish,FW,ENG,1995
+515,Jack Harrison,"FW,DF",ENG,1996
+516,Jack Hinshelwood,MF,ENG,2005
 517,Jack O'Connell,DF,ENG,1994
 518,Jack Robinson,DF,ENG,1993
 519,Jack Stacey,DF,ENG,1996
@@ -522,14 +522,14 @@ player_id,player,pos,nation,born
 521,Jack Taylor,MF,IRL,1998
 522,Jackson Tchatchoua,"DF,MF",CMR,2001
 523,Jacob Brown,"MF,FW",SCO,1998
-524,Jacob Bruun Larsen,"MF,FW",DEN,1998
+524,Jacob Bruun Larsen,"FW,MF",DEN,1998
 525,Jacob Greaves,DF,ENG,2000
-526,Jacob Murphy,"DF,MF",ENG,1995
+526,Jacob Murphy,FW,ENG,1995
 527,Jacob Ramsey,MF,ENG,2001
 528,Jaden Philogene Bidace,FW,ENG,2002
-529,Jadon Sancho,"FW,MF",ENG,2000
+529,Jadon Sancho,FW,ENG,2000
 530,Jahmai Simpson-Pusey,DF,ENG,2005
-531,Jaidon Anthony,"MF,FW",ENG,1999
+531,Jaidon Anthony,"FW,MF",ENG,1999
 532,Jair Cunha,DF,BRA,2005
 533,Jaka Bijol,DF,SVN,1999
 534,Jake Evans,FW,ENG,2008
@@ -552,7 +552,7 @@ player_id,player,pos,nation,born
 551,James McCarthy,MF,IRL,1990
 552,James McConnell,MF,ENG,2004
 553,James Mcatee,"MF,FW",ENG,2002
-554,James Milner,"MF,DF",ENG,1986
+554,James Milner,MF,ENG,1986
 555,James Rodríguez,"FW,MF",COL,1991
 556,James Shea,GK,ENG,1991
 557,James Tarkowski,DF,ENG,1992
@@ -576,7 +576,7 @@ player_id,player,pos,nation,born
 575,Jay Rodriguez,FW,ENG,1989
 576,Jay Stansfield,FW,ENG,2002
 577,Jaydee Canvot,DF,FRA,2006
-578,Jayden Bogle,"DF,MF",ENG,2000
+578,Jayden Bogle,DF,ENG,2000
 579,Jayden Danns,FW,ENG,2006
 580,Jayden Meghoma,DF,ENG,2006
 581,Jayson Molumby,MF,IRL,1999
@@ -592,7 +592,7 @@ player_id,player,pos,nation,born
 591,Jens Cajuste,MF,SWE,1999
 592,Jenson Seelt,DF,NED,2003
 593,Jeremie Frimpong,"DF,MF",NED,2000
-594,Jeremy Doku,"FW,MF",BEL,2002
+594,Jeremy Doku,"MF,FW",BEL,2002
 595,Jeremy Monga,"FW,MF",,2009
 596,Jeremy Ngakia,DF,,2000
 597,Jeremy Sarmiento,"FW,MF",ECU,2002
@@ -613,16 +613,16 @@ player_id,player,pos,nation,born
 612,Joe Rodon,DF,WAL,1997
 613,Joe Rothwell,MF,ENG,1995
 614,Joe White,MF,ENG,2002
-615,Joe Willock,MF,ENG,1999
+615,Joe Willock,"MF,FW",ENG,1999
 616,Joe Worrall,DF,ENG,1997
 617,Joel Mumbongo,FW,SWE,1999
 618,Joel Robles,GK,ESP,1990
 619,Joel Ward,DF,ENG,1989
-620,Joelinton,"FW,MF",BRA,1996
+620,Joelinton,MF,BRA,1996
 621,John Egan,DF,IRL,1992
 622,John Fleck,MF,SCO,1991
 623,John Lundstram,MF,ENG,1994
-624,John McGinn,MF,SCO,1994
+624,John McGinn,"MF,FW",SCO,1994
 625,John Ruddy,GK,ENG,1986
 626,John Stones,DF,ENG,1994
 627,Jonah Kusi-Asare,FW,SWE,2007
@@ -635,7 +635,7 @@ player_id,player,pos,nation,born
 634,Jordan Ayew,"FW,MF",GHA,1991
 635,Jordan Beyer,DF,GER,2000
 636,Jordan Clark,MF,ENG,1993
-637,Jordan Henderson,"MF,DF",ENG,1990
+637,Jordan Henderson,MF,ENG,1990
 638,Jordan Pickford,GK,ENG,1994
 639,Jordan Zemura,DF,ZIM,1999
 640,Jorge Cuenca,DF,ESP,1999
@@ -653,11 +653,11 @@ player_id,player,pos,nation,born
 652,Josh Onomah,MF,ENG,1997
 653,Josh Sargent,"FW,MF",USA,2000
 654,Joshua Acheampong,DF,ENG,2006
-655,Joshua King,"MF,FW",NOR,1992
+655,Joshua King,MF,ENG,2007
 656,Joshua Zirkzee,"FW,MF",NED,2001
 657,José Izquierdo,DF,COL,1992
 658,José Sá,GK,POR,1993
-659,Jota Silva,"FW,MF",POR,1999
+659,Jota Silva,FW,POR,1999
 660,João Cancelo,"DF,MF",POR,1994
 661,João Félix,"FW,MF",POR,1999
 662,João Gomes,MF,BRA,2001
@@ -673,20 +673,20 @@ player_id,player,pos,nation,born
 672,Juan Mata,"FW,MF",ESP,1988
 673,Julian Araujo,DF,MEX,2001
 674,Julio Enciso,"FW,MF",PAR,2004
-675,Julio Soler,"DF,FW",ARG,2005
+675,Julio Soler,"MF,FW",ARG,2005
 676,Julián Álvarez,"FW,MF",ARG,2000
 677,Junior Firpo,"DF,MF",DOM,1996
 678,Junior Stanislas,MF,ENG,1989
 679,Juraj Kucka,MF,SVK,1987
 680,Jurriën Timber,DF,NED,2001
-681,Justin Devenny,MF,NIR,2003
-682,Justin Kluivert,"MF,FW",NED,1999
+681,Justin Devenny,"MF,FW",NIR,2003
+682,Justin Kluivert,MF,NED,1999
 683,Jáder Durán,"FW,MF",COL,2003
 684,Jóhann Berg Guðmundsson,MF,ISL,1990
 685,Jørgen Strand Larsen,FW,NOR,2000
 686,Jürgen Locadia,"MF,FW",CUW,1993
 687,Kaelan Casey,DF,ENG,2004
-688,Kai Havertz,"MF,FW",GER,1999
+688,Kai Havertz,FW,GER,1999
 689,Kaide Gordon,FW,ENG,2004
 690,Kaine Kesler-Hayden,"MF,DF",ENG,2002
 691,Kalidou Koulibaly,DF,SEN,1991
@@ -694,7 +694,7 @@ player_id,player,pos,nation,born
 693,Kamaldeen Sulemana,"FW,MF",GHA,2002
 694,Kami Doyle,MF,ENG,2005
 695,Kamil Grosicki,"MF,FW",POL,1988
-696,Kaoru Mitoma,"FW,MF",JPN,1997
+696,Kaoru Mitoma,FW,JPN,1997
 697,Karl Darlow,GK,WAL,1990
 698,Karlan Grant,"FW,MF",ENG,1997
 699,Kasey McAteer,FW,IRL,2001
@@ -702,13 +702,13 @@ player_id,player,pos,nation,born
 701,Kayky Chagas,FW,BRA,2003
 702,Kayne Ramsey,DF,ENG,2000
 703,Kean Bryan,DF,ENG,1996
-704,Keane Lewis-Potter,"FW,MF",ENG,2001
+704,Keane Lewis-Potter,"DF,FW",ENG,2001
 705,Keinan Davis,"FW,MF",ENG,1998
 706,Kelechi Iheanacho,FW,NGA,1996
 707,Ken Sema,"MF,FW",SWE,1993
 708,Kenedy,DF,BRA,1996
 709,Kenny McLean,MF,SCO,1992
-710,Kenny Tete,"DF,MF",NED,1995
+710,Kenny Tete,DF,NED,1995
 711,Kepa Arrizabalaga,GK,ESP,1994
 712,Kevin,"FW,MF",BRA,2003
 713,Kevin Danso,DF,AUT,1998
@@ -741,10 +741,10 @@ player_id,player,pos,nation,born
 740,Kyle Walker,DF,ENG,1990
 741,Kyle Walker-Peters,DF,ENG,1997
 742,Ladislav Krejčí,"DF,MF",CZE,1999
-743,Lamare Bogarde,"DF,MF",NED,2004
+743,Lamare Bogarde,MF,NED,2004
 744,Layvin Kurzawa,DF,FRA,1992
 745,Leander Dendoncker,"MF,DF",BEL,1995
-746,Leandro Trossard,"MF,FW",BEL,1994
+746,Leandro Trossard,FW,BEL,1994
 747,Lee Peltier,DF,ENG,1986
 748,Leif Davis,DF,ENG,2000
 749,Leny Yoro,DF,FRA,2005
@@ -755,7 +755,7 @@ player_id,player,pos,nation,born
 754,Levi Colwill,DF,ENG,2003
 755,Lewis Bate,MF,ENG,2002
 756,Lewis Brunt,MF,ENG,2000
-757,Lewis Cook,MF,ENG,1997
+757,Lewis Cook,"DF,MF",ENG,1997
 758,Lewis Dobbin,"FW,MF",ENG,2003
 759,Lewis Dunk,DF,ENG,1991
 760,Lewis Hall,DF,ENG,2004
@@ -775,13 +775,13 @@ player_id,player,pos,nation,born
 774,Luca Koleosho,"MF,FW",ITA,2004
 775,Lucas,DF,BRA,2001
 776,Lucas Bergvall,MF,SWE,2006
-777,Lucas Digne,"DF,MF",FRA,1993
+777,Lucas Digne,DF,FRA,1993
 778,Lucas Moura,"FW,MF",BRA,1992
-779,Lucas Paquetá,MF,BRA,1997
+779,Lucas Paquetá,"MF,FW",BRA,1997
 780,Lucas Perri,GK,BRA,1997
 781,Ludwig Augustinsson,DF,SWE,1994
 782,Luis Díaz,FW,COL,1997
-783,Luis Guilherme,"MF,FW",BRA,2006
+783,Luis Guilherme,"FW,MF",BRA,2006
 784,Luis Sinisterra,FW,COL,1999
 785,Luka Milivojević,MF,SRB,1991
 786,Lukas Nmecha,FW,GER,1998
@@ -795,7 +795,7 @@ player_id,player,pos,nation,born
 794,Luke Woolfenden,DF,ENG,1998
 795,Lutsharel Geertruida,DF,NED,2000
 796,Lyanco,DF,BRA,1997
-797,Lyle Foster,"FW,MF",RSA,2000
+797,Lyle Foster,FW,RSA,2000
 798,Lys Mousset,"FW,MF",FRA,1996
 799,Mads Bech Sørensen,DF,DEN,1999
 800,Mads Bidstrup,MF,DEN,2001
@@ -806,7 +806,7 @@ player_id,player,pos,nation,born
 805,Malang Sarr,DF,FRA,1999
 806,Malcolm Ebiowei,"MF,FW",ENG,2003
 807,Malick Thiaw,DF,GER,2001
-808,Malo Gusto,DF,FRA,2003
+808,Malo Gusto,"DF,MF",FRA,2003
 809,Mamadou Sakho,DF,FRA,1990
 810,Manor Solomon,FW,ISR,1999
 811,Manuel Akanji,DF,SUI,1995
@@ -848,12 +848,12 @@ player_id,player,pos,nation,born
 847,Massimo Luongo,MF,AUS,1992
 848,Mateo Joseph,"FW,MF",ESP,2003
 849,Mateo Kovačić,MF,CRO,1994
-850,Mateus Fernandes,MF,POR,2004
-851,Mateus Mane,MF,POR,2007
+850,Mateus Fernandes,"MF,FW",POR,2004
+851,Mateus Mane,"FW,MF",POR,2007
 852,Mateusz Klich,MF,POL,1990
-853,Matheus Cunha,FW,BRA,1999
+853,Matheus Cunha,"MF,FW",BRA,1999
 854,Matheus França,"MF,FW",BRA,2004
-855,Matheus Nunes,MF,POR,1998
+855,Matheus Nunes,DF,POR,1998
 856,Matheus Pereira,"MF,FW",BRA,1996
 857,Mathew Ryan,GK,AUS,1992
 858,Mathias Jensen,MF,DEN,1996
@@ -861,7 +861,7 @@ player_id,player,pos,nation,born
 860,Mathias Normann,MF,NOR,1996
 861,Mathis Amougou,MF,FRA,2006
 862,Mathys Tel,FW,FRA,2005
-863,Mats Wieffer,"DF,MF",NED,1999
+863,Mats Wieffer,DF,NED,1999
 864,Matt Doherty,DF,IRL,1992
 865,Matt O'Riley,MF,DEN,2000
 866,Matt Phillips,MF,SCO,1991
@@ -901,9 +901,9 @@ player_id,player,pos,nation,born
 900,Micky van de Ven,DF,NED,2001
 901,Miguel Almirón,"MF,FW",PAR,1994
 902,Mike Trésor,"FW,MF",BEL,1999
-903,Mikel Merino,"MF,FW",ESP,1996
+903,Mikel Merino,"FW,MF",ESP,1996
 904,Mikey Moore,MF,ENG,2007
-905,Mikkel Damsgaard,"MF,FW",DEN,2000
+905,Mikkel Damsgaard,MF,DEN,2000
 906,Milos Kerkez,DF,HUN,2003
 907,Milot Rashica,"FW,MF",KVX,1996
 908,Mislav Oršić,MF,CRO,1992
@@ -962,7 +962,7 @@ player_id,player,pos,nation,born
 961,Nicolas Jackson,FW,SEN,2001
 962,Nicolas Nkoulou,DF,CMR,1990
 963,Nicolas Pépé,FW,CIV,1995
-964,Nicolás Domínguez,"MF,FW",ARG,1998
+964,Nicolás Domínguez,"FW,MF",ARG,1998
 965,Nicolás González,MF,ESP,2002
 966,Nicolò Savona,"DF,MF",ITA,2003
 967,Nicolò Zaniolo,"FW,MF",ITA,1999
@@ -989,7 +989,7 @@ player_id,player,pos,nation,born
 988,Oliver Burke,FW,SCO,1997
 989,Oliver McBurnie,FW,SCO,1996
 990,Oliver Norwood,MF,NIR,1991
-991,Oliver Scarles,"DF,FW",ENG,2005
+991,Oliver Scarles,"DF,MF",ENG,2005
 992,Oliver Skipp,MF,ENG,2000
 993,Oliver Sonne,"DF,FW",PER,2000
 994,Olivier Boscagli,DF,FRA,1997
@@ -1002,7 +1002,7 @@ player_id,player,pos,nation,born
 1001,Omari Kellyman,FW,ENG,2005
 1002,Orel Mangala,MF,BEL,1998
 1003,Oriol Romeu,MF,ESP,1991
-1004,Oscar Bobb,"FW,MF",NOR,2003
+1004,Oscar Bobb,"MF,FW",NOR,2003
 1005,Oskar Buur,DF,DEN,1998
 1006,Owen Beck,DF,WAL,2002
 1007,Owen Bevan,DF,WAL,2003
@@ -1013,9 +1013,9 @@ player_id,player,pos,nation,born
 1012,Pablo Hernández,MF,ESP,1985
 1013,Pablo Marí,DF,ESP,1993
 1014,Pablo Sarabia,"FW,MF",ESP,1992
-1015,Pape Matar Sarr,"MF,FW",SEN,2002
+1015,Pape Matar Sarr,MF,SEN,2002
 1016,Pascal Groß,"MF,DF",GER,1991
-1017,Pascal Struijk,"DF,MF",NED,1999
+1017,Pascal Struijk,DF,NED,1999
 1018,Patrick Bamford,FW,ENG,1993
 1019,Patrick Cutrone,FW,ITA,1998
 1020,Patrick Dorgu,DF,DEN,2004
@@ -1027,13 +1027,13 @@ player_id,player,pos,nation,born
 1026,Paul Onuachu,FW,NGA,1994
 1027,Paul Pogba,"MF,FW",FRA,1993
 1028,Pedro Lima,DF,BRA,2006
-1029,Pedro Neto,"FW,MF",POR,2000
-1030,Pedro Porro,"DF,MF",ESP,1999
+1029,Pedro Neto,FW,POR,2000
+1030,Pedro Porro,DF,ESP,1999
 1031,Pelly Ruddock Mpanzu,MF,COD,1993
 1032,Percy Tau,FW,RSA,1994
 1033,Pervis Estupiñán,DF,ECU,1998
 1034,Phil Bardsley,DF,SCO,1985
-1035,Phil Foden,"FW,MF",ENG,2000
+1035,Phil Foden,MF,ENG,2000
 1036,Phil Jagielka,DF,ENG,1982
 1037,Phil Jones,DF,ENG,1992
 1038,Philip Billing,"MF,FW",DEN,1996
@@ -1058,9 +1058,9 @@ player_id,player,pos,nation,born
 1057,Raúl Jiménez,FW,MEX,1991
 1058,Reda Khadra,MF,GER,2001
 1059,Reece Burke,DF,ENG,1996
-1060,Reece James,DF,ENG,1999
+1060,Reece James,"DF,MF",ENG,1999
 1061,Reinildo Mandava,"DF,MF",MOZ,1994
-1062,Reiss Nelson,"FW,MF",ENG,1999
+1062,Reiss Nelson,FW,ENG,1999
 1063,Rekeem Harper,MF,ENG,2000
 1064,Remi Matthews,GK,ENG,1994
 1065,Remo Freuler,MF,SUI,1992
@@ -1073,8 +1073,8 @@ player_id,player,pos,nation,born
 1072,Ricardo Pereira,"DF,FW",POR,1993
 1073,Riccardo Calafiori,DF,ITA,2002
 1074,Richarlison,FW,BRA,1997
-1075,Rico Henry,DF,ENG,1997
-1076,Rico Lewis,"DF,MF",ENG,2004
+1075,Rico Henry,DF,JAM,1997
+1076,Rico Lewis,DF,ENG,2004
 1077,Rio Ngumoha,"FW,MF",ENG,2008
 1078,Riyad Mahrez,FW,ALG,1991
 1079,Rob Holding,DF,ENG,1995
@@ -1088,10 +1088,10 @@ player_id,player,pos,nation,born
 1087,Rodri,MF,ESP,1996
 1088,Rodrigo,"MF,FW",ESP,1991
 1089,Rodrigo Bentancur,MF,URU,1997
-1090,Rodrigo Gomes,"DF,FW",POR,2003
+1090,Rodrigo Gomes,"FW,DF",POR,2003
 1091,Rodrigo Muniz,FW,BRA,2001
 1092,Rodrigo Ribeiro,"MF,FW",POR,2005
-1093,Romain Esse,MF,ENG,2005
+1093,Romain Esse,FW,ENG,2005
 1094,Romain Faivre,"MF,FW",FRA,1998
 1095,Romain Perraud,DF,FRA,1997
 1096,Romain Saïss,DF,MAR,1990
@@ -1106,14 +1106,14 @@ player_id,player,pos,nation,born
 1105,Ruben Loftus-Cheek,FW,ENG,1996
 1106,Rui Patrício,GK,POR,1988
 1107,Ryan Bertrand,DF,ENG,1989
-1108,Ryan Christie,"MF,FW",SCO,1995
+1108,Ryan Christie,MF,SCO,1995
 1109,Ryan Fraser,"FW,MF",SCO,1994
 1110,Ryan Fredericks,"DF,FW",ENG,1992
 1111,Ryan Giles,"DF,MF",ENG,2000
-1112,Ryan Gravenberch,MF,NED,2002
+1112,Ryan Gravenberch,"MF,DF",NED,2002
 1113,Ryan Manning,"DF,MF",IRL,1996
 1114,Ryan One,FW,SCO,2006
-1115,Ryan Sessegnon,"DF,MF",ENG,2000
+1115,Ryan Sessegnon,DF,ENG,2000
 1116,Ryan Trevitt,MF,ENG,2003
 1117,Ryan Yates,MF,ENG,1997
 1118,Rúben Dias,DF,POR,1997
@@ -1166,7 +1166,7 @@ player_id,player,pos,nation,born
 1165,Shola Shoretire,FW,ENG,2004
 1166,Shumaira Mheuka,MF,ENG,2007
 1167,Sidnei Tavares,MF,,2001
-1168,Simon Adingra,FW,CIV,2002
+1168,Simon Adingra,"FW,MF",CIV,2002
 1169,Siriki Dembélé,"FW,MF",CIV,1996
 1170,Sofyan Amrabat,"MF,DF",MAR,1996
 1171,Solly March,"DF,MF",ENG,1994
@@ -1185,8 +1185,8 @@ player_id,player,pos,nation,born
 1184,Stuart McKinstry,MF,SCO,2002
 1185,Sven Botman,DF,NED,2000
 1186,Sydie Peck,MF,ENG,2004
-1187,Sávio,"FW,MF",BRA,2004
-1188,Séamus Coleman,"DF,MF",IRL,1988
+1187,Sávio,"MF,FW",BRA,2004
+1188,Séamus Coleman,"DF,FW",IRL,1988
 1189,Sébastien Haller,FW,CIV,1994
 1190,Tahith Chong,"MF,FW",CUW,1999
 1191,Taiwo Awoniyi,FW,NGA,1997
@@ -1205,7 +1205,7 @@ player_id,player,pos,nation,born
 1204,Tetê,FW,BRA,2000
 1205,Theo Corbeanu,FW,CAN,2002
 1206,Theo Walcott,FW,ENG,1989
-1207,Thiago,"FW,MF",BRA,2001
+1207,Thiago,FW,BRA,2001
 1208,Thiago Alcántara,MF,ESP,1991
 1209,Thiago Silva,DF,BRA,1984
 1210,Thierno Barry,FW,FRA,2002
@@ -1219,7 +1219,7 @@ player_id,player,pos,nation,born
 1218,Tim Krul,GK,NED,1988
 1219,Tim Ream,DF,USA,1987
 1220,Timo Werner,"FW,MF",GER,1996
-1221,Timothy Castagne,DF,BEL,1995
+1221,Timothy Castagne,"DF,FW",BEL,1995
 1222,Timothy Fosu-Mensah,DF,NED,1998
 1223,Toby Alderweireld,DF,BEL,1989
 1224,Toby Collyer,MF,ENG,2004
@@ -1232,7 +1232,7 @@ player_id,player,pos,nation,born
 1231,Tom Lockyer,DF,WAL,1994
 1232,Tom Watson,FW,ENG,2006
 1233,Tommy Doyle,MF,ENG,2001
-1234,Tomáš Souček,MF,CZE,1995
+1234,Tomáš Souček,"MF,FW",CZE,1995
 1235,Tony Springett,"MF,FW",IRL,2002
 1236,Tosin Adarabioyo,DF,ENG,1997
 1237,Toti Gomes,DF,POR,1999
@@ -1242,14 +1242,14 @@ player_id,player,pos,nation,born
 1241,Troy Deeney,FW,ENG,1988
 1242,Trézéguet,FW,EGY,1994
 1243,Tyler Adams,MF,USA,1999
-1244,Tyler Dibling,"FW,MF",ENG,2006
+1244,Tyler Dibling,FW,ENG,2006
 1245,Tyler Fredricson,DF,ENG,2005
 1246,Tyler Morton,MF,ENG,2002
 1247,Tyler Onyango,MF,ENG,2003
 1248,Tyler Roberts,"MF,FW",WAL,1999
 1249,Tyrell Malacia,DF,NED,1999
 1250,Tyrese Francois,DF,AUS,2000
-1251,Tyrick Mitchell,DF,ENG,1999
+1251,Tyrick Mitchell,"DF,MF",ENG,1999
 1252,Tyrique George,FW,ENG,2006
 1253,Tyrone Mings,DF,ENG,1993
 1254,Valentino Livramento,DF,ENG,2002
@@ -1257,7 +1257,7 @@ player_id,player,pos,nation,born
 1256,Veljko Milosavljević,DF,SRB,2007
 1257,Vicente Guaita,GK,ESP,1987
 1258,Victor Bernth Kristiansen,DF,DEN,2002
-1259,Victor Lindelöf,DF,SWE,1994
+1259,Victor Lindelöf,"MF,DF",SWE,1994
 1260,Viktor Gyökeres,FW,SWE,1998
 1261,Vinicius Souza,MF,BRA,1999
 1262,Virgil van Dijk,DF,NED,1991
@@ -1268,7 +1268,7 @@ player_id,player,pos,nation,born
 1267,Vitinho,"DF,MF",BRA,1999
 1268,Vitor Reis,DF,BRA,2006
 1269,Vladimír Coufal,DF,CZE,1992
-1270,Wataru Endo,MF,JPN,1993
+1270,Wataru Endo,"MF,DF",JPN,1993
 1271,Wayne Hennessey,GK,WAL,1987
 1272,Welington,DF,BRA,2001
 1273,Wes Burns,"FW,DF",WAL,1994
@@ -1278,7 +1278,7 @@ player_id,player,pos,nation,born
 1277,Wesley Moraes,FW,BRA,1996
 1278,Weston McKennie,MF,USA,1998
 1279,Wilfred Ndidi,"MF,DF",NGA,1996
-1280,Wilfried Gnonto,"FW,MF",ITA,2003
+1280,Wilfried Gnonto,FW,ITA,2003
 1281,Wilfried Zaha,FW,CIV,1992
 1282,Will Alves,FW,ENG,2005
 1283,Will Fish,FW,ENG,2003
@@ -1295,14 +1295,14 @@ player_id,player,pos,nation,born
 1294,Willy Caballero,GK,ARG,1981
 1295,Willy Kambwala,DF,FRA,2004
 1296,Wilson Isidor,FW,FRA,2000
-1297,Wilson Odobert,"MF,FW",FRA,2004
+1297,Wilson Odobert,"FW,MF",FRA,2004
 1298,Wout Faes,DF,BEL,1998
 1299,Wout Weghorst,FW,NED,1992
 1300,Woyo Coulibaly,DF,MLI,1999
 1301,Xavi Simons,"MF,FW",NED,2003
 1302,Xherdan Shaqiri,"MF,FW",SUI,1991
 1303,Yan Valery,"DF,MF",TUN,1999
-1304,Yankuba Minteh,"FW,MF",GAM,2004
+1304,Yankuba Minteh,FW,GAM,2004
 1305,Yasin Ayari,MF,SWE,2003
 1306,Yasser Larouci,DF,ALG,2001
 1307,Yehor Yarmoliuk,MF,UKR,2004
