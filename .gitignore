@@ -159,8 +159,7 @@ Dockerfile
 init-db.sql
 setup-local-postgres.sql
 
-# Ignore all .md files
-*.md
+
 
 # Ignore all .html files
 *.html
