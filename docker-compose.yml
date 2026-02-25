@@ -1,127 +1,62 @@
 version: '3.8'
-
 services:
+  # 1. PostgreSQL Database
   postgres:
-    image: postgres:15
-    container_name: etl-football-postgres
-    restart: unless-stopped
+    image: postgres:15-alpine
+    container_name: etl-football-db
     environment:
-      POSTGRES_USER: airflow
-      POSTGRES_PASSWORD: airflow
-      POSTGRES_DB: airflow
+      POSTGRES_USER: football_user
+      POSTGRES_PASSWORD: "12345"
+      POSTGRES_DB: ETL_FOOTBALL
     volumes:
-      - postgres-data:/var/lib/postgresql/data
-      - ./docker/initdb:/docker-entrypoint-initdb.d
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DB:-airflow} -U ${POSTGRES_USER:-airflow}"]
+      test: ["CMD-SHELL", "pg_isready -U football_user -d ETL_FOOTBALL"]
       interval: 10s
       timeout: 5s
       retries: 5
-
-  airflow-init:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    entrypoint: /bin/bash
-    command:
-      - -c
-      - |
-        echo "Waiting for PostgreSQL to be ready..."
-        until pg_isready -h ${POSTGRES_HOST:-postgres} -p ${POSTGRES_PORT:-5432} -U ${POSTGRES_USER:-airflow}; do
-          sleep 2
-        done
-        echo "Initializing Airflow metadata database..."
-        airflow db init
-        echo "Creating Airflow admin user..."
-        airflow users create \
-          --username airflow \
-          --firstname Airflow \
-          --lastname Admin \
-          --role Admin \
-          --email airflow@example.com \
-          --password airflow || true
-        echo "Airflow initialization completed!"
-    environment:
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
-      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
-      ETL_FOOTBALL_BASE_DIR: /opt/airflow
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
-      POSTGRES_DB: ETL_FOOTBALL
-      POSTGRES_USER: airflow
-      POSTGRES_PASSWORD: airflow
-    volumes:
-      - ./dags:/opt/airflow/dags
-      - ./scr:/opt/airflow/scr
+  #2.  ETL service
+  etl-worker:
+    build: .
+    container_name: etl-worker
     depends_on:
       postgres:
         condition: service_healthy
-    restart: "no"
-
-  airflow-webserver:
+    environment:
+      etl_football_base_dir: /app
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: football_user
+      DB_PASSWORD: "12345"
+      DB_NAME: ETL_FOOTBALL
+    volumes:
+      - .:/app
+      - ./data_raw:/app/data_raw
+      - ./data_processed:/app/data_processed
+    command: >
+      sh -c "python scr/Extract.py && python scr/Transform.py && python scr/Load.py"
+  # 3. Streamlit Dashboard
+  dashboard:
     build:
       context: .
       dockerfile: Dockerfile
-    command: webserver
+    container_name: etl-football-dashboard
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: etl_user
+      DB_PASSWORD: etl_password
+      DB_NAME: etl_football
     ports:
-      - "8080:8080"
-    environment:
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
-      AIRFLOW__CORE__EXECUTOR: LocalExecutor
-      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
-      AIRFLOW__WEBSERVER__BASE_URL: http://localhost:8080
-      AIRFLOW__LOGGING__BASE_LOG_FOLDER: /opt/airflow/logs
-      ETL_FOOTBALL_BASE_DIR: /opt/airflow
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
-      POSTGRES_DB: ETL_FOOTBALL
-      POSTGRES_USER: airflow
-      POSTGRES_PASSWORD: airflow
+      - "8501:8501"
     volumes:
-      - ./dags:/opt/airflow/dags
-      - ./scr:/opt/airflow/scr
-      - ./data_raw:/opt/airflow/data_raw
-      - ./data_processed:/opt/airflow/data_processed
-      - airflow-logs:/opt/airflow/logs
-    depends_on:
-      postgres:
-        condition: service_healthy
-      airflow-init:
-        condition: service_completed_successfully
-    restart: always
-
-  airflow-scheduler:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    command: scheduler
-    environment:
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
-      AIRFLOW__CORE__EXECUTOR: LocalExecutor
-      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
-      AIRFLOW__WEBSERVER__BASE_URL: http://localhost:8080
-      AIRFLOW__LOGGING__BASE_LOG_FOLDER: /opt/airflow/logs
-      ETL_FOOTBALL_BASE_DIR: /opt/airflow
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
-      POSTGRES_DB: ETL_FOOTBALL
-      POSTGRES_USER: airflow
-      POSTGRES_PASSWORD: airflow
-    volumes:
-      - ./dags:/opt/airflow/dags
-      - ./scr:/opt/airflow/scr
-      - ./data_raw:/opt/airflow/data_raw
-      - ./data_processed:/opt/airflow/data_processed
-      - airflow-logs:/opt/airflow/logs
-    depends_on:
-      postgres:
-        condition: service_healthy
-      airflow-init:
-        condition: service_completed_successfully
-    restart: always
+      - .:/app
+    command: streamlit run scr/ui.py --server.port=8501 --server.address=0.0.0.0
 
 volumes:
-  airflow-logs:
-  postgres-data:
+  postgres_data:

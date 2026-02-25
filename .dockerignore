@@ -1,40 +1,15 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-
-# Virtual environments
+# Bỏ qua môi trường ảo (vì Docker sẽ tự cài thư viện riêng bên trong)
 venv/
-env/
-ENV/
-.venv
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
+# Bỏ qua các file rác của Python
+__pycache__/
+*.pyc
 
-# Git
+# Bỏ qua cấu hình của Git
 .git/
 .gitignore
 
-# Data directories (sẽ được mount từ host)
-data_raw/
-data_processed/
-*.csv
-
-# Logs
-*.log
-logs/
-
-# Airflow
-airflow.db
-airflow.cfg
-
-# OS
+# Bỏ qua các file tạm hoặc file ẩn của hệ điều hành
 .DS_Store
 Thumbs.db
 
@@ -58,8 +33,4 @@ scr/_cache_soccerdata/
 
 # Test files
 test/
-
-# Poetry
-poetry.lock
-pyproject.toml
 

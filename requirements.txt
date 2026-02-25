@@ -16,6 +16,6 @@ streamlit
 plotly.express
 plotly.graph_objects
 matplotlib
-# Airflow providers (Airflow core đã có sẵn trong base image)
-apache-airflow-providers-postgres>=5.10.0
+
+
 
